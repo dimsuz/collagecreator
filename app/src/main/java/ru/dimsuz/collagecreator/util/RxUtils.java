@@ -10,9 +10,7 @@ import java.io.IOException;
 
 import rx.Observable;
 import rx.Subscriber;
-import rx.android.widget.OnTextChangeEvent;
 import rx.functions.Func0;
-import rx.functions.Func1;
 import timber.log.Timber;
 
 /**
@@ -68,7 +66,7 @@ public class RxUtils {
         return RxUtils.runOnce(new Func0<Response>() {
             @Override
             public Response call() {
-                Timber.d("launching get request: {}", url);
+                Timber.d("launching get request: %s", url);
                 Request request = new Request.Builder()
                         .url(url)
                         .build();
@@ -77,10 +75,10 @@ public class RxUtils {
                     if(!response.isSuccessful()) {
                         throw new IOException("server returned an error code " + response + ", url: " + url);
                     }
-                    Timber.d("request was successful: {}", url);
+                    Timber.d("request was successful: %s", url);
                     return response;
                 } catch(IOException e) {
-                    Timber.e("request failed: {}", url);
+                    Timber.e("request failed: %s", url);
                     throw new RuntimeException(e);
                 }
             }

@@ -125,7 +125,7 @@ public class MainActivity extends RxCompatActivity {
                 if(userInfo.isValid()) {
                     // FIXME remove
                     errorView.setVisibility(View.VISIBLE);
-                    errorView.setText("User info is valid: " + userInfo);
+                    errorView.setText("Welcome, " + userInfo.userName() + "!");
                 } else {
                     errorView.setVisibility(View.VISIBLE);
                     String errorText = userInfo.userName().isEmpty()
