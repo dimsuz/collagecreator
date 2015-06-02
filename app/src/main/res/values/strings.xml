@@ -2,5 +2,8 @@
     <string name="app_name">Collage Creator</string>
 
     <string name="username">Имя пользователя</string>
-    <string name="start_collage">Начать</string>
+    <string name="start_collage">Давай коллаж</string>
+    <string name="err_user_name_is_empty">Не указано имя пользователя</string>
+    <string name="err_user_name_not_found">Пользователь \'%s\' не найден, введите корректное имя пользователя</string>
+    <string name="err_retrieve_failed">Не удалось определить корректность имени пользователя</string>
 </resources>

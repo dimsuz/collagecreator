@@ -2,9 +2,14 @@ package ru.dimsuz.collagecreator.network;
 
 import com.squareup.okhttp.OkHttpClient;
 
+import java.util.concurrent.TimeUnit;
+
 import ru.dimsuz.collagecreator.data.ImageInfo;
+import ru.dimsuz.collagecreator.data.UserInfo;
+import ru.dimsuz.collagecreator.util.RxUtils;
 import rx.Observable;
-import rx.functions.Func1;
+import rx.functions.Func0;
+import timber.log.Timber;
 
 public class InstagramClient {
     /**
@@ -17,14 +22,11 @@ public class InstagramClient {
         this.client = client;
     }
 
-    public Observable<ImageInfo> getUserImages(String userName) {
-        return getUserId(userName).flatMap(new Func1<String, Observable<ImageInfo>>() {
-            @Override
-            public Observable<ImageInfo> call(String userId) {
-                // will cope with pagination and all that
-                return fetchAllUserImages(client, userId);
-            }
-        });
+    public Observable<ImageInfo> getUserImages(UserInfo userInfo) {
+        if(!userInfo.isValid()) {
+            return Observable.error(new RuntimeException("passed user info is not valid: "+userInfo));
+        }
+        return null;
     }
 
     private static Observable<ImageInfo> fetchAllUserImages(OkHttpClient client, String userId) {
@@ -34,7 +36,16 @@ public class InstagramClient {
     /**
      * Given a user name returns an instagram user id
      */
-    private Observable<String> getUserId(String userName) {
-        return Observable.error(new RuntimeException("no id"));
+    public Observable<UserInfo> getUserInfo(final String userName) {
+        return RxUtils.runOnce(new Func0<UserInfo>() {
+            @Override
+            public UserInfo call() {
+                Timber.d("getting user info for: %s", userName);
+                if(userName.startsWith("ra") || userName.endsWith("ha")) {
+                    return UserInfo.create(userName, "123");
+                }
+                throw new RuntimeException("invalid username");
+            }
+        }).delay(800, TimeUnit.MILLISECONDS);
     }
 }
