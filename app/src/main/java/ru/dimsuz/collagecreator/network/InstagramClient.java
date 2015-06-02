@@ -6,14 +6,14 @@ import ru.dimsuz.collagecreator.data.ImageInfo;
 import rx.Observable;
 import rx.functions.Func1;
 
-public class InstagramApi {
+public class InstagramClient {
     /**
      * A client id for instagram api, registered for this app
      */
     private final static String CLIENT_ID = "822685a536c4426b8d3fad3f03b84af6";
     private final OkHttpClient client;
 
-    public InstagramApi(OkHttpClient client) {
+    public InstagramClient(OkHttpClient client) {
         this.client = client;
     }
 

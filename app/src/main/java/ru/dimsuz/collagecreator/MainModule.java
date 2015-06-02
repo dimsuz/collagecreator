@@ -8,7 +8,7 @@ import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
-import ru.dimsuz.collagecreator.network.InstagramApi;
+import ru.dimsuz.collagecreator.network.InstagramClient;
 
 @Module(injects = MainActivity.class)
 public class MainModule {
@@ -23,7 +23,7 @@ public class MainModule {
     }
 
     @Provides @Singleton
-    InstagramApi provideInstagramApi(OkHttpClient client) {
-        return new InstagramApi(client);
+    InstagramClient provideInstagramClient(OkHttpClient client) {
+        return new InstagramClient(client);
     }
 }
