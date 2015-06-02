@@ -17,7 +17,6 @@ import butterknife.OnClick;
 import ru.dimsuz.collagecreator.data.UserInfo;
 import ru.dimsuz.collagecreator.network.InstagramClient;
 import ru.dimsuz.collagecreator.util.Actions;
-import ru.dimsuz.collagecreator.util.RxUtils;
 import rx.Observable;
 import rx.android.lifecycle.LifecycleEvent;
 import rx.android.lifecycle.LifecycleObservable;
@@ -66,7 +65,7 @@ public class MainActivity extends RxCompatActivity {
         Observable<UserInfo> observable = WidgetObservable.text(userNameView)
                 // don't check too often...
                 .debounce(500, TimeUnit.MILLISECONDS)
-                .filter(RxUtils.notEmptyText())
+                .filter(Actions.notEmptyText())
                 .flatMap(new Func1<OnTextChangeEvent, Observable<UserInfo>>() {
                     @Override
                     public Observable<UserInfo> call(OnTextChangeEvent event) {

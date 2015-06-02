@@ -87,13 +87,4 @@ public class RxUtils {
         });
     }
 
-    @NotNull
-    public static Func1<OnTextChangeEvent, Boolean> notEmptyText() {
-        return new Func1<OnTextChangeEvent, Boolean>() {
-            @Override
-            public Boolean call(OnTextChangeEvent event) {
-                return event.text().length() != 0;
-            }
-        };
-    }
 }
