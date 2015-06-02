@@ -18,15 +18,40 @@
 
     <LinearLayout
         android:id="@+id/content"
-        android:layout_marginTop="?attr/actionBarSize"
-        android:layout_height="match_parent"
-        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_gravity="center"
         android:orientation="vertical"
         >
         <TextView
-            android:text="@string/hello_world"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:drawablePadding="8dp"
+            android:layout_gravity="center"
+            />
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <EditText
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:hint="@string/username"
+                android:layout_gravity="center_vertical"
+                android:drawableLeft="@drawable/instagram36"
+                android:drawablePadding="16dp"
+                android:gravity="center_vertical"
+                />
+        </LinearLayout>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
+            android:paddingLeft="48dp"
+            android:paddingRight="48dp"
+            android:text="@string/start_collage"
+            />
+
     </LinearLayout>
 
 </FrameLayout>
