@@ -1,17 +1,29 @@
 package ru.dimsuz.collagecreator;
 
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import javax.inject.Inject;
 
-public class MainActivity extends ActionBarActivity {
+import ru.dimsuz.collagecreator.network.InstagramClient;
+
+
+public class MainActivity extends AppCompatActivity {
+    @Inject
+    InstagramClient instagramClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        CollageCreatorApp.get(this).inject(this);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
     }
 
     @Override
