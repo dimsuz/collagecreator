@@ -6,6 +6,7 @@ import android.graphics.RectF;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 
 import org.jetbrains.annotations.NotNull;
@@ -55,16 +56,24 @@ public class CollageActivity extends RxCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        UserInfo userInfo = getIntent().getParcelableExtra(Consts.EXTRA_USER_INFO);
+        final UserInfo userInfo = getIntent().getParcelableExtra(Consts.EXTRA_USER_INFO);
         if(userInfo == null || !userInfo.isValid()) {
             throw new RuntimeException("required user info is missing");
         }
 
-        createCollage(userInfo, CollageLayout.SIMPLE_2x2);
+        // ensure view is measured and laid out, safe to take size
+        collageView.getViewTreeObserver()
+                .addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                    @Override
+                    public void onGlobalLayout() {
+                        collageView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                        createCollage(userInfo, CollageLayout.SIMPLE_2x2, Math.min(collageView.getWidth(), collageView.getHeight()));
+                    }
+                });
     }
 
-    private void createCollage(UserInfo userInfo, final List<RectF> layout) {
-        Observable<Bitmap> collageObservable = createCollageObservable(userInfo, layout);
+    private void createCollage(UserInfo userInfo, final List<RectF> layout, int size) {
+        Observable<Bitmap> collageObservable = createCollageObservable(userInfo, layout, size);
         LifecycleObservable.bindUntilLifecycleEvent(lifecycle(), collageObservable, LifecycleEvent.DESTROY)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -94,7 +103,7 @@ public class CollageActivity extends RxCompatActivity {
         };
     }
 
-    private Observable<Bitmap> createCollageObservable(UserInfo userInfo, final List<RectF> layout) {
+    private Observable<Bitmap> createCollageObservable(UserInfo userInfo, final List<RectF> layout, final int size) {
         return instagramClient.getUserImages(userInfo)
                 .toSortedList(ImageInfo.sortByLikesDesc())
                 .flatMap(Functions.<ImageInfo>flatten())
@@ -109,7 +118,7 @@ public class CollageActivity extends RxCompatActivity {
                 .map(new Func1<List<Bitmap>, Bitmap>() {
                     @Override
                     public Bitmap call(List<Bitmap> bitmaps) {
-                        return CollageBuilder.create(bitmaps, layout, 300, Color.WHITE);
+                        return CollageBuilder.create(bitmaps, layout, size, Color.WHITE);
                     }
                 });
     }
