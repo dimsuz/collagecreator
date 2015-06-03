@@ -4,12 +4,15 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.RectF;
 import android.os.Bundle;
+import android.support.v4.print.PrintHelper;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -17,6 +20,7 @@ import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import butterknife.OnClick;
 import ru.dimsuz.collagecreator.collage.CollageBuilder;
 import ru.dimsuz.collagecreator.collage.CollageLayout;
 import ru.dimsuz.collagecreator.data.Consts;
@@ -29,6 +33,7 @@ import rx.Observable;
 import rx.android.lifecycle.LifecycleEvent;
 import rx.android.lifecycle.LifecycleObservable;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
@@ -123,4 +128,20 @@ public class CollageActivity extends RxCompatActivity {
                 });
     }
 
+    @OnClick(R.id.button_print)
+    public void onPrintRequested() {
+        if(latestCollageBitmap == null) {
+            // actually this is a developer error, buttons should not be shown without collage!
+            Toast.makeText(this, "No collage has been built yet.", Toast.LENGTH_LONG).show();
+            return;
+        }
+        if(!PrintHelper.systemSupportsPrint()) {
+            Toast.makeText(this, getString(R.string.error_no_print_support), Toast.LENGTH_LONG).show();
+            return;
+        }
+        Timber.d("starting print...");
+        PrintHelper photoPrinter = new PrintHelper(this);
+        photoPrinter.setScaleMode(PrintHelper.SCALE_MODE_FIT);
+        photoPrinter.printBitmap("Collage photo", latestCollageBitmap);
+    }
 }
