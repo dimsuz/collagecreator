@@ -25,26 +25,31 @@ public final class JsonParsers {
      * Parses a user search response json and finds a basic info about user.
      */
     @NotNull
-    public static UserInfo parseSearchResultsForMatch(Response response, Gson gson, String userName) throws IOException {
-        JsonReader jsonReader = new JsonReader(response.body().charStream());
-        jsonReader.beginObject();
-        while(jsonReader.hasNext()) {
-            String key = jsonReader.nextName();
-            if(key.equals("data")) {
-                UserResponseData[] result = gson.fromJson(jsonReader, UserResponseData[].class);
-                //Timber.d("got this!\n%s", Arrays.asList(result));
-                UserResponseData match = findBestUserNameMatch(result, userName);
-                if(match != null) {
-                    return UserInfo.create(match.username, match.id);
+    public static UserInfo parseSearchResultsForMatch(Response response, Gson gson, String userName) {
+        try {
+            JsonReader jsonReader = new JsonReader(response.body().charStream());
+            jsonReader.beginObject();
+            while(jsonReader.hasNext()) {
+                String key = jsonReader.nextName();
+                if(key.equals("data")) {
+                    UserResponseData[] result = gson.fromJson(jsonReader, UserResponseData[].class);
+                    //Timber.d("got this!\n%s", Arrays.asList(result));
+                    UserResponseData match = findBestUserNameMatch(result, userName);
+                    if(match != null) {
+                        return UserInfo.create(match.username, match.id);
+                    } else {
+                        throw new RuntimeException("username '" + userName + "' not found");
+                    }
                 } else {
-                    throw new RuntimeException("username '" + userName + "' not found");
+                    jsonReader.skipValue();
                 }
-            } else {
-                jsonReader.skipValue();
             }
+            jsonReader.endObject();
+            throw new RuntimeException("username '" + userName + "' not found");
+        } catch(IOException e) {
+            Timber.e(e, "failed to read user info json");
+            throw new RuntimeException(e);
         }
-        jsonReader.endObject();
-        throw new RuntimeException("username '" + userName + "' not found");
     }
 
     @Nullable
@@ -65,19 +70,24 @@ public final class JsonParsers {
     }
 
     @NotNull
-    public static List<ImageInfo> parseImagesResponse(Response response) throws IOException {
-        JsonReader jsonReader = new JsonReader(response.body().charStream());
-        jsonReader.beginObject();
-        while(jsonReader.hasNext()) {
-            String key = jsonReader.nextName();
-            if(key.equals("data")) {
-                return parseImageDataArray(jsonReader);
-            } else {
-                jsonReader.skipValue();
+    public static List<ImageInfo> parseImagesResponse(Response response) {
+        try {
+            JsonReader jsonReader = new JsonReader(response.body().charStream());
+            jsonReader.beginObject();
+            while(jsonReader.hasNext()) {
+                String key = jsonReader.nextName();
+                if(key.equals("data")) {
+                    return parseImageDataArray(jsonReader);
+                } else {
+                    jsonReader.skipValue();
+                }
             }
+            jsonReader.endObject();
+            throw new RuntimeException("failed to find user image json data, wrong format?");
+        } catch(IOException e) {
+            Timber.e(e, "failed to read image info json");
+            throw new RuntimeException(e);
         }
-        jsonReader.endObject();
-        throw new RuntimeException("failed to find user image json data, wrong format?");
     }
 
     private static List<ImageInfo> parseImageDataArray(JsonReader jsonReader) throws IOException {

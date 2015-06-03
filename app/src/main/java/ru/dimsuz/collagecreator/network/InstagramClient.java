@@ -7,7 +7,6 @@ import com.squareup.okhttp.Response;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.util.List;
 
 import ru.dimsuz.collagecreator.data.Consts;
@@ -90,12 +89,7 @@ public class InstagramClient {
                 .map(new Func1<Response, List<ImageInfo>>() {
                     @Override
                     public List<ImageInfo> call(Response response) {
-                        try {
-                            return JsonParsers.parseImagesResponse(response);
-                        } catch(IOException e) {
-                            Timber.e(e, "failed to read image info json");
-                            throw new RuntimeException(e);
-                        }
+                        return JsonParsers.parseImagesResponse(response);
                     }
                 });
     }
@@ -115,12 +109,7 @@ public class InstagramClient {
                 .map(new Func1<Response, UserInfo>() {
                     @Override
                     public UserInfo call(Response response) {
-                        try {
-                            return JsonParsers.parseSearchResultsForMatch(response, gson, userName);
-                        } catch(IOException e) {
-                            Timber.e(e, "failed to read user info json");
-                            throw new RuntimeException(e);
-                        }
+                        return JsonParsers.parseSearchResultsForMatch(response, gson, userName);
                     }
                 });
     }
