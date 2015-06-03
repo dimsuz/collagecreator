@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.graphics.RectF;
 import android.os.Bundle;
 import android.support.v4.print.PrintHelper;
+import android.support.v4.util.LruCache;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -45,6 +46,8 @@ import timber.log.Timber;
 public class CollageActivity extends RxCompatActivity {
     @Inject
     InstagramClient instagramClient;
+    @Inject
+    LruCache<String, List<ImageInfo>> userImagesCache;
     @InjectView(R.id.collageView)
     ImageView collageView;
     @InjectView(R.id.progressBar)
@@ -137,11 +140,29 @@ public class CollageActivity extends RxCompatActivity {
         };
     }
 
-    private Observable<Bitmap> createCollageObservable(UserInfo userInfo, final List<RectF> layout, final int size) {
-        return instagramClient.getUserImages(userInfo)
-                .toSortedList(ImageInfo.sortByLikesDesc())
-                .flatMap(Functions.<ImageInfo>flatten())
+    /**
+     * This is the heart of collage creation.
+     * It all starts with user images, then rushes through sorting to laying out and to the final render!
+     */
+    private Observable<Bitmap> createCollageObservable(final UserInfo userInfo, final List<RectF> layout, final int size) {
+        // First, try to get from cache
+        return Observable.just(userImagesCache.get(userInfo.userName()))
+                // either use cached value, or proceed with fetching all image data
+                .flatMap(new Func1<List<ImageInfo>, Observable<ImageInfo>>() {
+                    @Override
+                    public Observable<ImageInfo> call(List<ImageInfo> imageInfoList) {
+                        if(imageInfoList == null) {
+                            Timber.d("no cached image data for %s, retrieving from server", userInfo);
+                            return createImageDataFetchObservable(userInfo);
+                        } else {
+                            Timber.d("using cached image data for %s", userInfo);
+                            return Observable.from(imageInfoList);
+                        }
+                    }
+                })
+                // take only amount of images we need for the collage
                 .take(layout.size())
+                // fetch bitmap data for these image urls
                 .flatMap(new Func1<ImageInfo, Observable<Bitmap>>() {
                     @Override
                     public Observable<Bitmap> call(ImageInfo imageInfo) {
@@ -149,12 +170,29 @@ public class CollageActivity extends RxCompatActivity {
                     }
                 })
                 .toList()
+                // final move: create a collage out of them
                 .map(new Func1<List<Bitmap>, Bitmap>() {
                     @Override
                     public Bitmap call(List<Bitmap> bitmaps) {
                         return CollageBuilder.create(bitmaps, layout, size, Color.WHITE);
                     }
                 });
+    }
+
+    private Observable<ImageInfo> createImageDataFetchObservable(UserInfo userInfo) {
+        return instagramClient.getUserImages(userInfo)
+                .toSortedList(ImageInfo.sortByLikesDesc())
+                .doOnNext(saveToCache(userInfo))
+                .flatMap(Functions.<ImageInfo>flatten());
+    }
+
+    private Action1<List<ImageInfo>> saveToCache(final UserInfo userInfo) {
+        return new Action1<List<ImageInfo>>() {
+            @Override
+            public void call(List<ImageInfo> imageInfoList) {
+                userImagesCache.put(userInfo.userName(), imageInfoList);
+            }
+        };
     }
 
     @OnClick(R.id.button_print)
