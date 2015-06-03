@@ -12,5 +12,9 @@
         <item name="android:paddingLeft">48dp</item>
         <item name="android:paddingRight">48dp</item>
     </style>
+    <!-- no way to have 'wrap_content' in dimens, need to do with styles -->
+    <style name="ActionButtons">
+        <item name="android:layout_width">match_parent</item>
+    </style>
 
 </resources>

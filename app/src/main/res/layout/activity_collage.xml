@@ -21,26 +21,11 @@
         android:layout_height="match_parent"
         android:layout_gravity="center"
         >
-        <!-- a quick-n-dirty way to make a colored button with touch feedback -->
-        <!-- would do something more optimized in the production -->
-        <FrameLayout
-            android:id="@+id/button_choose"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:layout_alignParentBottom="true"
-            android:foreground="?attr/selectableItemBackground" >
-            <TextView
-                android:background="@color/primaryColor"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:gravity="center"
-                android:textSize="16sp"
-                android:textColor="@color/primaryTextColorInverse"
-                android:textAllCaps="true"
-                android:text="@string/choose_images"
-                />
-        </FrameLayout>
+
+        <include layout="@layout/collage_actions"
+                 android:id="@+id/collage_actions"
+            />
+
         <ImageView
             android:id="@+id/collageView"
             android:layout_width="match_parent"
@@ -49,7 +34,7 @@
             android:layout_alignParentTop="true"
             android:layout_alignParentLeft="true"
             android:layout_alignParentRight="true"
-            android:layout_above="@id/button_choose"
+            android:layout_above="@+id/collage_actions"
             android:scaleType="centerInside"
             />
     </RelativeLayout>

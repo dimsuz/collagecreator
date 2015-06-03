@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/ActionButtons"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="16dp"
+    android:layout_marginRight="16dp"
+    android:layout_marginBottom="16dp"
+    android:layout_centerHorizontal="true"
+    android:layout_alignParentBottom="true"
+    android:orientation="vertical"
+    tools:showIn="@layout/activity_collage">
+    <!-- a quick-n-dirty way to make a colored button with touch feedback -->
+    <!-- would do something more optimized in the production -->
+    <FrameLayout
+        android:id="@+id/button_choose"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:foreground="?attr/selectableItemBackground">
+
+        <TextView
+            android:background="@color/primaryColor"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:gravity="center"
+            android:textSize="16sp"
+            android:textColor="@color/primaryTextColorInverse"
+            android:textAllCaps="true"
+            android:text="@string/choose_images"
+            />
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/button_print"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:foreground="?attr/selectableItemBackground">
+
+        <TextView
+            android:background="@color/primaryColor"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:gravity="center"
+            android:textSize="16sp"
+            android:textColor="@color/primaryTextColorInverse"
+            android:textAllCaps="true"
+            android:text="@string/send_to_print"
+            />
+    </FrameLayout>
+</LinearLayout>
