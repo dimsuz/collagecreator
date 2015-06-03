@@ -1,5 +1,6 @@
 package ru.dimsuz.collagecreator.data;
 
+import android.os.Parcelable;
 import android.text.TextUtils;
 
 import org.jetbrains.annotations.Nullable;
@@ -10,7 +11,7 @@ import auto.parcel.AutoParcel;
  * Represents information about instagram user
  */
 @AutoParcel
-public abstract class UserInfo {
+public abstract class UserInfo implements Parcelable {
     public abstract String userName();
     @Nullable
     public abstract String userId();

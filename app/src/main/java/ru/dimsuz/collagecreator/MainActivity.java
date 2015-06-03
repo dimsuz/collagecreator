@@ -1,5 +1,6 @@
 package ru.dimsuz.collagecreator;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -14,6 +15,7 @@ import javax.inject.Inject;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
+import ru.dimsuz.collagecreator.data.Consts;
 import ru.dimsuz.collagecreator.data.UserInfo;
 import ru.dimsuz.collagecreator.network.InstagramClient;
 import ru.dimsuz.collagecreator.util.Actions;
@@ -123,9 +125,10 @@ public class MainActivity extends RxCompatActivity {
             @Override
             public void call(UserInfo userInfo) {
                 if(userInfo.isValid()) {
-                    // FIXME remove
-                    errorView.setVisibility(View.VISIBLE);
-                    errorView.setText("Welcome, " + userInfo.userName() + "!");
+                    errorView.setVisibility(View.GONE);
+                    Intent intent = new Intent(MainActivity.this, CollageActivity.class);
+                    intent.putExtra(Consts.EXTRA_USER_INFO, userInfo);
+                    startActivity(intent);
                 } else {
                     errorView.setVisibility(View.VISIBLE);
                     String errorText = userInfo.userName().isEmpty()

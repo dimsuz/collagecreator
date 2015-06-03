@@ -10,7 +10,10 @@ import dagger.Module;
 import dagger.Provides;
 import ru.dimsuz.collagecreator.network.InstagramClient;
 
-@Module(injects = MainActivity.class)
+@Module(injects = {
+        MainActivity.class,
+        CollageActivity.class
+})
 public class MainModule {
     @Provides @Singleton
     OkHttpClient provideHttpClient() {
