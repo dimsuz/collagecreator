@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import ru.dimsuz.collagecreator.data.Consts;
 import ru.dimsuz.collagecreator.data.ImageInfo;
 import ru.dimsuz.collagecreator.data.UserInfo;
 import timber.log.Timber;
@@ -77,14 +78,14 @@ public final class JsonParsers {
     }
 
     private static List<ImageInfo> parseImageDataArray(JsonReader jsonReader) throws IOException {
-        // instagram default to pagination of 20 items per request
-        List<ImageInfo> imageList = new ArrayList<>(20);
+        List<ImageInfo> imageList = new ArrayList<>(Consts.IMAGES_PER_REQUEST_COUNT);
         jsonReader.beginArray();
         while(jsonReader.hasNext()) {
             jsonReader.beginObject();
             int likesCount = 0;
             ImageData imageData = null;
             CaptionData captionData = null;
+            String id = null;
             while(jsonReader.hasNext()) {
                 String key = jsonReader.nextName();
                 if(key.equals("likes")) {
@@ -93,17 +94,19 @@ public final class JsonParsers {
                     imageData = parseImageEntry(jsonReader);
                 } else if(key.equals("caption")) {
                     captionData = parseCaption(jsonReader);
+                } else if(key.equals("id")) {
+                    id = jsonReader.nextString();
                 } else {
                     jsonReader.skipValue();
                 }
             }
             jsonReader.endObject();
             if(imageData != null) {
-                imageList.add(ImageInfo.create(imageData.url, captionData != null ? captionData.title : "",
+                imageList.add(ImageInfo.create(id, imageData.url, captionData != null ? captionData.title : "",
                         likesCount, imageData.width, imageData.height,
                         captionData != null ? captionData.timestamp : 0));
             } else {
-                throw new RuntimeException("failed to read required image fields");
+                throw new RuntimeException("failed to read required image fields, id="+id);
             }
             // FIXME use object pools for imageData,captionData
         }
