@@ -4,8 +4,11 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.RectF;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.ImageView;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -49,12 +52,50 @@ public class CollageActivity extends RxCompatActivity {
         CollageCreatorApp.get(this).inject(this);
         ButterKnife.inject(this);
 
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
         UserInfo userInfo = getIntent().getParcelableExtra(Consts.EXTRA_USER_INFO);
         if(userInfo == null || !userInfo.isValid()) {
             throw new RuntimeException("required user info is missing");
         }
-        final List<RectF> layout = CollageLayout.SIMPLE_2x2;
-        Observable<Bitmap> collageObservable = instagramClient.getUserImages(userInfo)
+
+        createCollage(userInfo, CollageLayout.SIMPLE_2x2);
+    }
+
+    private void createCollage(UserInfo userInfo, final List<RectF> layout) {
+        Observable<Bitmap> collageObservable = createCollageObservable(userInfo, layout);
+        LifecycleObservable.bindUntilLifecycleEvent(lifecycle(), collageObservable, LifecycleEvent.DESTROY)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(showCollage(), showError());
+    }
+
+    @NotNull
+    private Action1<Bitmap> showCollage() {
+        return new Action1<Bitmap>() {
+            @Override
+            public void call(Bitmap collageBitmap) {
+                Timber.d("got collage made: %dx%d", collageBitmap.getWidth(), collageBitmap.getHeight());
+                collageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+                collageView.setImageBitmap(collageBitmap);
+                progressBar.setVisibility(View.GONE);
+            }
+        };
+    }
+
+    @NotNull
+    private Action1<Throwable> showError() {
+        return new Action1<Throwable>() {
+            @Override
+            public void call(Throwable e) {
+                Timber.e(e, "failed to build a collage");
+            }
+        };
+    }
+
+    private Observable<Bitmap> createCollageObservable(UserInfo userInfo, final List<RectF> layout) {
+        return instagramClient.getUserImages(userInfo)
                 .toSortedList(ImageInfo.sortByLikesDesc())
                 .flatMap(Functions.<ImageInfo>flatten())
                 .take(layout.size())
@@ -71,25 +112,6 @@ public class CollageActivity extends RxCompatActivity {
                         return CollageBuilder.create(bitmaps, layout, 300, Color.WHITE);
                     }
                 });
-        LifecycleObservable.bindUntilLifecycleEvent(lifecycle(), collageObservable, LifecycleEvent.DESTROY)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                        new Action1<Bitmap>() {
-                            @Override
-                            public void call(Bitmap collageBitmap) {
-                                Timber.d("got collage made: %dx%d", collageBitmap.getWidth(), collageBitmap.getHeight());
-                                collageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-                                collageView.setImageBitmap(collageBitmap);
-                                progressBar.setVisibility(View.GONE);
-                            }
-                        },
-                        new Action1<Throwable>() {
-                            @Override
-                            public void call(Throwable e) {
-                                Timber.e(e, "failed to build a collage");
-                            }
-                        });
     }
 
 }
