@@ -21,8 +21,11 @@ import timber.log.Timber;
  * Contains a set of function helpers which parse json returned by Instagram servers
  */
 public final class JsonParsers {
+    /**
+     * Parses a user search response json and finds a basic info about user.
+     */
     @NotNull
-    public static UserInfo parseUserInfo(Response response, Gson gson, String userName) throws IOException {
+    public static UserInfo parseSearchResultsForMatch(Response response, Gson gson, String userName) throws IOException {
         JsonReader jsonReader = new JsonReader(response.body().charStream());
         jsonReader.beginObject();
         while(jsonReader.hasNext()) {

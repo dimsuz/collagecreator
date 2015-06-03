@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Response;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -15,7 +16,9 @@ import ru.dimsuz.collagecreator.data.UserInfo;
 import ru.dimsuz.collagecreator.util.NetworkUtils;
 import ru.dimsuz.collagecreator.util.RxUtils;
 import rx.Observable;
+import rx.functions.Action1;
 import rx.functions.Func1;
+import rx.subjects.BehaviorSubject;
 import timber.log.Timber;
 
 public class InstagramClient {
@@ -31,17 +34,57 @@ public class InstagramClient {
         gson = new Gson();
     }
 
-    public Observable<List<ImageInfo>> getUserImages(UserInfo userInfo) {
+    public Observable<List<ImageInfo>> getUserImages(final UserInfo userInfo) {
         if(userInfo == null || !userInfo.isValid()) {
             return Observable.error(new IllegalArgumentException("passed user info is not valid: "+userInfo));
         }
-        return getImagesSinceMaxId(userInfo.userId(), null);
+        // Retrieve a page after page until en empty data set is returned.
+        // Subject here is used as the source of 'fetch next page' requests.
+        // Whenever such request is emitted, next page is retrieved, parsed and appended to the whole
+        // and finally when subjects emits onCompleted(), whole list is assembled and returned to the user
+        //
+        // NOTE: doing this iteratively. I first tried recursion (which doesn't need subject), but
+        // when user has more than N pages it crashes, where N is amount needed for stack to overflow
+        final BehaviorSubject<String> nextMaxIdEvents = BehaviorSubject.create("");
+        return nextMaxIdEvents
+                .flatMap(new Func1<String, Observable<ImageInfo>>() {
+                    @Override
+                    public Observable<ImageInfo> call(String maxId) {
+                        return getImagesSinceMaxId(userInfo.userId(), maxId)
+                                .doOnNext(requestNextPageOrFinish(nextMaxIdEvents))
+                                // unroll to be recomposed to list later
+                                .concatMap(new Func1<List<ImageInfo>, Observable<ImageInfo>>() {
+                                    @Override
+                                    public Observable<ImageInfo> call(List<ImageInfo> images) {
+                                        return Observable.from(images);
+                                    }
+                                });
+                    }
+                })
+                .toList();
+    }
+
+    @NotNull
+    private static Action1<List<ImageInfo>> requestNextPageOrFinish(final BehaviorSubject<String> nextMaxIdEvents) {
+        return new Action1<List<ImageInfo>>() {
+            @Override
+            public void call(List<ImageInfo> images) {
+                if(images.isEmpty()) {
+                    Timber.d("page load finished, no more data");
+                    nextMaxIdEvents.onCompleted();
+                } else {
+                    Timber.d("loaded page, asking for next page");
+                    ImageInfo curPageLastImage = images.get(images.size() - 1);
+                    nextMaxIdEvents.onNext(curPageLastImage.id());
+                }
+            }
+        };
     }
 
     private Observable<List<ImageInfo>> getImagesSinceMaxId(final String userId, @Nullable String maxId) {
         String url = "https://api.instagram.com/v1/users/" + userId + "/media/recent/"+
                 "?count="+ Consts.IMAGES_PER_REQUEST_COUNT +
-                (maxId != null ? "&max_id=" + maxId : "");
+                (maxId != null && !maxId.isEmpty() ? "&max_id=" + maxId : "");
         return RxUtils.httpGetRequest(client, instagramUrl(url))
                 // parse this page
                 .map(new Func1<Response, List<ImageInfo>>() {
@@ -52,31 +95,6 @@ public class InstagramClient {
                         } catch(IOException e) {
                             Timber.e(e, "failed to read image info json");
                             throw new RuntimeException(e);
-                        }
-                    }
-                })
-                // and then continue fetching recursively and joining results until no more data is returned
-                .flatMap(new Func1<List<ImageInfo>, Observable<List<ImageInfo>>>() {
-                    @Override
-                    public Observable<List<ImageInfo>> call(final List<ImageInfo> curPageImages) {
-                        if(curPageImages.isEmpty()) {
-                            // finished, no more data to fetch...
-                            return Observable.just(curPageImages);
-                        } else {
-                            // obtain next page data and then prepend the current list to it.
-                            // this is recursion, bro
-                            ImageInfo curPageLastId = curPageImages.get(curPageImages.size() - 1);
-                            Timber.d("fetching next image page...");
-                            return getImagesSinceMaxId(userId, curPageLastId.id())
-                                    .map(new Func1<List<ImageInfo>, List<ImageInfo>>() {
-                                        @Override
-                                        public List<ImageInfo> call(List<ImageInfo> nextPageImages) {
-                                            // watch out! not immutable, keep an eye on this one
-                                            Timber.d("this page contained %d images", nextPageImages.size());
-                                            curPageImages.addAll(nextPageImages);
-                                            return curPageImages;
-                                        }
-                                    });
                         }
                     }
                 });
@@ -98,7 +116,7 @@ public class InstagramClient {
                     @Override
                     public UserInfo call(Response response) {
                         try {
-                            return JsonParsers.parseUserInfo(response, gson, userName);
+                            return JsonParsers.parseSearchResultsForMatch(response, gson, userName);
                         } catch(IOException e) {
                             Timber.e(e, "failed to read user info json");
                             throw new RuntimeException(e);
