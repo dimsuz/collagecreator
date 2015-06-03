@@ -17,6 +17,7 @@ import ru.dimsuz.collagecreator.util.RxUtils;
 import rx.Observable;
 import rx.functions.Action1;
 import rx.functions.Func1;
+import rx.functions.Func2;
 import rx.subjects.BehaviorSubject;
 import timber.log.Timber;
 
@@ -33,6 +34,29 @@ public class InstagramClient {
         gson = new Gson();
     }
 
+    /**
+     * Given a user name returns an instagram user id
+     */
+    public Observable<UserInfo> getUserInfo(final String userName) {
+        if(userName == null || userName.isEmpty()) {
+            return Observable.error(new IllegalArgumentException("username must not be empty"));
+        }
+        Timber.d("getting user info for: %s", userName);
+        // count=1 is not enough, best match is not always first! (dunno why)
+        String url = "https://api.instagram.com/v1/users/search?q=" + userName + "&count=20";
+        return RxUtils
+                .httpGetRequest(client, instagramUrl(url))
+                .map(new Func1<Response, UserInfo>() {
+                    @Override
+                    public UserInfo call(Response response) {
+                        return JsonParsers.parseSearchResultsForMatch(response, gson, userName);
+                    }
+                });
+    }
+
+    /**
+     * Returns <b>all</b> user images, sorted by likes count DESC
+     */
     public Observable<List<ImageInfo>> getUserImages(final UserInfo userInfo) {
         if(userInfo == null || !userInfo.isValid()) {
             return Observable.error(new IllegalArgumentException("passed user info is not valid: "+userInfo));
@@ -60,7 +84,21 @@ public class InstagramClient {
                                 });
                     }
                 })
-                .toList();
+                .toSortedList(createImageSortFunction());
+    }
+
+    private Observable<List<ImageInfo>> getImagesSinceMaxId(final String userId, @Nullable String maxId) {
+        String url = "https://api.instagram.com/v1/users/" + userId + "/media/recent/"+
+                "?count="+ Consts.IMAGES_PER_REQUEST_COUNT +
+                (maxId != null && !maxId.isEmpty() ? "&max_id=" + maxId : "");
+        return RxUtils.httpGetRequest(client, instagramUrl(url))
+                // parse this page
+                .map(new Func1<Response, List<ImageInfo>>() {
+                    @Override
+                    public List<ImageInfo> call(Response response) {
+                        return JsonParsers.parseImagesResponse(response);
+                    }
+                });
     }
 
     @NotNull
@@ -80,38 +118,15 @@ public class InstagramClient {
         };
     }
 
-    private Observable<List<ImageInfo>> getImagesSinceMaxId(final String userId, @Nullable String maxId) {
-        String url = "https://api.instagram.com/v1/users/" + userId + "/media/recent/"+
-                "?count="+ Consts.IMAGES_PER_REQUEST_COUNT +
-                (maxId != null && !maxId.isEmpty() ? "&max_id=" + maxId : "");
-        return RxUtils.httpGetRequest(client, instagramUrl(url))
-                // parse this page
-                .map(new Func1<Response, List<ImageInfo>>() {
-                    @Override
-                    public List<ImageInfo> call(Response response) {
-                        return JsonParsers.parseImagesResponse(response);
-                    }
-                });
-    }
-
-    /**
-     * Given a user name returns an instagram user id
-     */
-    public Observable<UserInfo> getUserInfo(final String userName) {
-        if(userName == null || userName.isEmpty()) {
-            return Observable.error(new IllegalArgumentException("username must not be empty"));
-        }
-        Timber.d("getting user info for: %s", userName);
-        // count=1 is not enough, best match is not always first! (dunno why)
-        String url = "https://api.instagram.com/v1/users/search?q=" + userName + "&count=20";
-        return RxUtils
-                .httpGetRequest(client, instagramUrl(url))
-                .map(new Func1<Response, UserInfo>() {
-                    @Override
-                    public UserInfo call(Response response) {
-                        return JsonParsers.parseSearchResultsForMatch(response, gson, userName);
-                    }
-                });
+    @NotNull
+    private static Func2<ImageInfo, ImageInfo, Integer> createImageSortFunction() {
+        return new Func2<ImageInfo, ImageInfo, Integer>() {
+            @Override
+            public Integer call(ImageInfo imageInfo1, ImageInfo imageInfo2) {
+                // need to be a little weirder than Integer.compare() to support earlier api levels
+                return Integer.valueOf(imageInfo2.likesCount()).compareTo(imageInfo1.likesCount());
+            }
+        };
     }
 
     /**
