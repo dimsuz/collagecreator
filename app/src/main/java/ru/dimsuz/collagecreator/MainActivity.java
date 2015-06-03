@@ -55,6 +55,18 @@ public class MainActivity extends RxCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         setupEditsObservable();
+
+        // run this after setting up an observable, so that change is propagated
+        if(savedInstanceState != null) {
+            String name = savedInstanceState.getString("name");
+            userNameView.setText(name != null ? name : "");
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("name", userNameView.getText().toString());
     }
 
     private void setupEditsObservable() {
