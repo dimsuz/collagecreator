@@ -1,19 +1,14 @@
 package ru.dimsuz.collagecreator.network;
 
 import com.google.gson.Gson;
-import com.google.gson.stream.JsonReader;
 import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Response;
 
-import java.io.IOException;
-import java.util.Arrays;
 
 import ru.dimsuz.collagecreator.data.ImageInfo;
 import ru.dimsuz.collagecreator.data.UserInfo;
 import ru.dimsuz.collagecreator.util.NetworkUtils;
 import ru.dimsuz.collagecreator.util.RxUtils;
 import rx.Observable;
-import rx.functions.Func1;
 import timber.log.Timber;
 
 public class InstagramClient {
@@ -40,17 +35,6 @@ public class InstagramClient {
         return null;
     }
 
-    private static class UserResponseData {
-        public String username;
-        public String id;
-
-        @Override
-        public String toString() {
-            return "UserResponseData{" +
-                    "username='" + username + '\'' +
-                    ", id='" + id + '\'' +
-                    '}';
-        }
     }
 
     /**
@@ -58,57 +42,14 @@ public class InstagramClient {
      */
     public Observable<UserInfo> getUserInfo(final String userName) {
         if(userName == null || userName.isEmpty()) {
-            throw new IllegalArgumentException("username must not be empty");
+            return Observable.error(new IllegalArgumentException("username must not be empty"));
         }
         Timber.d("getting user info for: %s", userName);
         // count=1 is not enough, best match is not always first! (dunno why)
         String url = "https://api.instagram.com/v1/users/search?q=" + userName + "&count=20";
         return RxUtils
                 .httpGetRequest(client, instagramUrl(url))
-                .map(new Func1<Response, UserInfo>() {
-                    @Override
-                    public UserInfo call(Response response) {
-                        try {
-                            // FIXME prettify this stuff!
-                            JsonReader jsonReader = new JsonReader(response.body().charStream());
-                            jsonReader.beginObject();
-                            while(jsonReader.hasNext()) {
-                                String key = jsonReader.nextName();
-                                if(key.equals("data")) {
-                                    UserResponseData[] result = gson.fromJson(jsonReader, UserResponseData[].class);
-                                    Timber.d("got this!\n%s", Arrays.asList(result));
-                                    UserResponseData match = null;
-                                    if(result.length != 0) {
-                                        // for some reason data is returned in not sorted by best match order,
-                                        // (for example 'fairylitte' query produces 'fairylittlefingers' first and 'fairylittle'
-                                        // goes later!)
-                                        // so need to search for the
-                                        // exact match otherwise use first supplied!
-                                        Timber.d("got %d matches for %s, searching for exact match", result.length, userName);
-                                        for(int i = 0, sz = result.length; i < sz; i++) {
-                                            if(result[i].username.equals(userName)) {
-                                                match = result[i];
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    if(match != null) {
-                                        return UserInfo.create(match.username, match.id);
-                                    } else {
-                                        throw new RuntimeException("username '" + userName + "' not found");
-                                    }
-                                } else {
-                                    jsonReader.skipValue();
-                                }
-                            }
-                            jsonReader.endObject();
-                        } catch(IOException e) {
-                            Timber.e("failed to read json");
-                            throw new RuntimeException(e);
-                        }
-                        throw new RuntimeException("username '" + userName + "' not found");
-                    }
-                });
+                .map(JsonParsers.parseUserInfo(gson, userName));
     }
 
     /**
