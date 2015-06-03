@@ -49,6 +49,10 @@ public class CollageActivity extends RxCompatActivity {
     ImageView collageView;
     @InjectView(R.id.progressBar)
     View progressBar;
+    @InjectView(R.id.content)
+    View contentLayout;
+    @Nullable
+    private Bitmap latestCollageBitmap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +70,14 @@ public class CollageActivity extends RxCompatActivity {
             throw new RuntimeException("required user info is missing");
         }
 
+        // createCollageViewSizedCollage(userInfo);
+        // instead of above, decided to do a higher dimension collage
+        // 10x15 photo frame is 1200x1800 (300ppi), soo...
+        int targetSize = 1200;
+        createCollage(userInfo, CollageLayout.SIMPLE_2x2, targetSize);
+    }
+
+    private void createCollageViewSizedCollage(final UserInfo userInfo) {
         // ensure view is measured and laid out, safe to take size
         collageView.getViewTreeObserver()
                 .addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -80,9 +92,25 @@ public class CollageActivity extends RxCompatActivity {
     private void createCollage(UserInfo userInfo, final List<RectF> layout, int size) {
         Observable<Bitmap> collageObservable = createCollageObservable(userInfo, layout, size);
         LifecycleObservable.bindUntilLifecycleEvent(lifecycle(), collageObservable, LifecycleEvent.DESTROY)
+                .doOnSubscribe(showProgressBar())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(showCollage(), showError());
+    }
+
+    private Action0 showProgressBar() {
+        return new Action0() {
+            @Override
+            public void call() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        progressBar.setVisibility(View.VISIBLE);
+                        contentLayout.setVisibility(View.GONE);
+                    }
+                });
+            }
+        };
     }
 
     @NotNull
@@ -91,9 +119,10 @@ public class CollageActivity extends RxCompatActivity {
             @Override
             public void call(Bitmap collageBitmap) {
                 Timber.d("got collage made: %dx%d", collageBitmap.getWidth(), collageBitmap.getHeight());
-                collageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
                 collageView.setImageBitmap(collageBitmap);
                 progressBar.setVisibility(View.GONE);
+                contentLayout.setVisibility(View.VISIBLE);
+                latestCollageBitmap = collageBitmap;
             }
         };
     }
