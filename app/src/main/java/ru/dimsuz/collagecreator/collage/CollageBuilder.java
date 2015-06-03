@@ -14,27 +14,29 @@ import timber.log.Timber;
  */
 public class CollageBuilder {
     // FIXME describe!
-    public static Bitmap create(List<Bitmap> images, List<RectF> layout, int targetWidth) {
-        validateArguments(images, layout, targetWidth);
+    public static Bitmap create(List<Bitmap> images, List<RectF> layout, int targetSize, int bgColor) {
+        validateArguments(images, layout, targetSize);
         // if sizes do not much, use as much data as possible
         int count = Math.min(images.size(), layout.size());
-        Timber.d("building collage out of %d images", images);
-        RectF[] rects = mapToTargetRect(layout, targetWidth, count);
-        Bitmap bitmap = Bitmap.createBitmap(targetWidth, totalHeight(rects), Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
+        Timber.d("building collage out of %d images", count);
+        RectF[] rects = mapToTargetRect(layout, targetSize, count);
+        Bitmap bitmap = Bitmap.createBitmap(targetSize, targetSize, Bitmap.Config.RGB_565);
+
         Paint paint = new Paint(Paint.FILTER_BITMAP_FLAG);
+        Canvas canvas = new Canvas(bitmap);
+        canvas.drawColor(bgColor);
         for(int i=0; i<rects.length; i++) {
             canvas.drawBitmap(images.get(i), null, rects[i], paint);
         }
         return bitmap;
     }
 
-    private static void validateArguments(List<Bitmap> images, List<RectF> layout, int targetWidth) {
+    private static void validateArguments(List<Bitmap> images, List<RectF> layout, int targetSize) {
         if(images == null || layout == null) {
             throw new IllegalArgumentException("not null arguments expected");
         }
-        if(targetWidth <= 0) {
-            throw new IllegalArgumentException("targetWidth is too small! targetWidth= " + targetWidth);
+        if(targetSize <= 0) {
+            throw new IllegalArgumentException("targetWidth is too small! targetSize= " + targetSize);
         }
         if(images.size() != layout.size()) {
             Timber.d("warning! image count and layout placeholder count do not match, will use as much as possible");

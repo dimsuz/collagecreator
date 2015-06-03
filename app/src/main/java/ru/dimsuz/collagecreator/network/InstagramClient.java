@@ -12,12 +12,12 @@ import java.util.List;
 import ru.dimsuz.collagecreator.data.Consts;
 import ru.dimsuz.collagecreator.data.ImageInfo;
 import ru.dimsuz.collagecreator.data.UserInfo;
+import ru.dimsuz.collagecreator.util.Functions;
 import ru.dimsuz.collagecreator.util.NetworkUtils;
 import ru.dimsuz.collagecreator.util.RxUtils;
 import rx.Observable;
 import rx.functions.Action1;
 import rx.functions.Func1;
-import rx.functions.Func2;
 import rx.subjects.BehaviorSubject;
 import timber.log.Timber;
 
@@ -55,9 +55,9 @@ public class InstagramClient {
     }
 
     /**
-     * Returns <b>all</b> user images, sorted by likes count DESC
+     * Returns <b>all</b> user images
      */
-    public Observable<List<ImageInfo>> getUserImages(final UserInfo userInfo) {
+    public Observable<ImageInfo> getUserImages(final UserInfo userInfo) {
         if(userInfo == null || !userInfo.isValid()) {
             return Observable.error(new IllegalArgumentException("passed user info is not valid: "+userInfo));
         }
@@ -75,16 +75,10 @@ public class InstagramClient {
                     public Observable<ImageInfo> call(String maxId) {
                         return getImagesSinceMaxId(userInfo.userId(), maxId)
                                 .doOnNext(requestNextPageOrFinish(nextMaxIdEvents))
-                                // unroll to be recomposed to list later
-                                .concatMap(new Func1<List<ImageInfo>, Observable<ImageInfo>>() {
-                                    @Override
-                                    public Observable<ImageInfo> call(List<ImageInfo> images) {
-                                        return Observable.from(images);
-                                    }
-                                });
+                                        // unroll to be recomposed to list later
+                                .flatMap(Functions.<ImageInfo>flatten());
                     }
-                })
-                .toSortedList(createImageSortFunction());
+                });
     }
 
     private Observable<List<ImageInfo>> getImagesSinceMaxId(final String userId, @Nullable String maxId) {
@@ -114,17 +108,6 @@ public class InstagramClient {
                     ImageInfo curPageLastImage = images.get(images.size() - 1);
                     nextMaxIdEvents.onNext(curPageLastImage.id());
                 }
-            }
-        };
-    }
-
-    @NotNull
-    private static Func2<ImageInfo, ImageInfo, Integer> createImageSortFunction() {
-        return new Func2<ImageInfo, ImageInfo, Integer>() {
-            @Override
-            public Integer call(ImageInfo imageInfo1, ImageInfo imageInfo2) {
-                // need to be a little weirder than Integer.compare() to support earlier api levels
-                return Integer.valueOf(imageInfo2.likesCount()).compareTo(imageInfo1.likesCount());
             }
         };
     }

@@ -1,20 +1,32 @@
 package ru.dimsuz.collagecreator;
 
+import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.RectF;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.ImageView;
 
 import java.util.List;
 
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
+import butterknife.InjectView;
+import ru.dimsuz.collagecreator.collage.CollageBuilder;
+import ru.dimsuz.collagecreator.collage.CollageLayout;
 import ru.dimsuz.collagecreator.data.Consts;
 import ru.dimsuz.collagecreator.data.ImageInfo;
 import ru.dimsuz.collagecreator.data.UserInfo;
+import ru.dimsuz.collagecreator.network.ImageFetcher;
 import ru.dimsuz.collagecreator.network.InstagramClient;
+import ru.dimsuz.collagecreator.util.Functions;
+import rx.Observable;
 import rx.android.lifecycle.LifecycleEvent;
 import rx.android.lifecycle.LifecycleObservable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
@@ -24,6 +36,10 @@ import timber.log.Timber;
 public class CollageActivity extends RxCompatActivity {
     @Inject
     InstagramClient instagramClient;
+    @InjectView(R.id.collageView)
+    ImageView collageView;
+    @InjectView(R.id.progressBar)
+    View progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,22 +53,43 @@ public class CollageActivity extends RxCompatActivity {
         if(userInfo == null || !userInfo.isValid()) {
             throw new RuntimeException("required user info is missing");
         }
-        LifecycleObservable.bindUntilLifecycleEvent(lifecycle(),
-                instagramClient.getUserImages(userInfo), LifecycleEvent.DESTROY)
+        final List<RectF> layout = CollageLayout.SIMPLE_2x2;
+        Observable<Bitmap> collageObservable = instagramClient.getUserImages(userInfo)
+                .toSortedList(ImageInfo.sortByLikesDesc())
+                .flatMap(Functions.<ImageInfo>flatten())
+                .take(layout.size())
+                .flatMap(new Func1<ImageInfo, Observable<Bitmap>>() {
+                    @Override
+                    public Observable<Bitmap> call(ImageInfo imageInfo) {
+                        return ImageFetcher.get(CollageActivity.this, imageInfo);
+                    }
+                })
+                .toList()
+                .map(new Func1<List<Bitmap>, Bitmap>() {
+                    @Override
+                    public Bitmap call(List<Bitmap> bitmaps) {
+                        return CollageBuilder.create(bitmaps, layout, 300, Color.WHITE);
+                    }
+                });
+        LifecycleObservable.bindUntilLifecycleEvent(lifecycle(), collageObservable, LifecycleEvent.DESTROY)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        new Action1<List<ImageInfo>>() {
+                        new Action1<Bitmap>() {
                             @Override
-                            public void call(List<ImageInfo> imageInfoList) {
-                                Timber.d("got image info list of size %d: %s", imageInfoList.size(), imageInfoList);
+                            public void call(Bitmap collageBitmap) {
+                                Timber.d("got collage made: %dx%d", collageBitmap.getWidth(), collageBitmap.getHeight());
+                                collageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+                                collageView.setImageBitmap(collageBitmap);
+                                progressBar.setVisibility(View.GONE);
                             }
                         },
                         new Action1<Throwable>() {
                             @Override
                             public void call(Throwable e) {
-                                Timber.e(e, "failed to obtain image info");
+                                Timber.e(e, "failed to build a collage");
                             }
                         });
     }
+
 }
