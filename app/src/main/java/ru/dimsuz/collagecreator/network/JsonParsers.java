@@ -9,7 +9,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
+import ru.dimsuz.collagecreator.data.ImageInfo;
 import ru.dimsuz.collagecreator.data.UserInfo;
 import rx.functions.Func1;
 import timber.log.Timber;
@@ -19,21 +21,7 @@ import timber.log.Timber;
  */
 public final class JsonParsers {
     @NotNull
-    static Func1<Response, UserInfo> parseUserInfo(final Gson gson, final String userName) {
-        return new Func1<Response, UserInfo>() {
-            @Override
-            public UserInfo call(Response response) {
-                try {
-                    return parseUserInfoImpl(response, gson, userName);
-                } catch(IOException e) {
-                    Timber.e("failed to read json");
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-    }
-
-    private static UserInfo parseUserInfoImpl(Response response, Gson gson, String userName) throws IOException {
+    public static UserInfo parseUserInfo(Response response, Gson gson, String userName) throws IOException {
         // FIXME prettify this stuff!
         JsonReader jsonReader = new JsonReader(response.body().charStream());
         jsonReader.beginObject();

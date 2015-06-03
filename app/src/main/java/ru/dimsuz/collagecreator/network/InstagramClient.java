@@ -2,13 +2,18 @@ package ru.dimsuz.collagecreator.network;
 
 import com.google.gson.Gson;
 import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Response;
 
+import org.jetbrains.annotations.Nullable;
+
+import java.io.IOException;
 
 import ru.dimsuz.collagecreator.data.ImageInfo;
 import ru.dimsuz.collagecreator.data.UserInfo;
 import ru.dimsuz.collagecreator.util.NetworkUtils;
 import ru.dimsuz.collagecreator.util.RxUtils;
 import rx.Observable;
+import rx.functions.Func1;
 import timber.log.Timber;
 
 public class InstagramClient {
@@ -49,7 +54,17 @@ public class InstagramClient {
         String url = "https://api.instagram.com/v1/users/search?q=" + userName + "&count=20";
         return RxUtils
                 .httpGetRequest(client, instagramUrl(url))
-                .map(JsonParsers.parseUserInfo(gson, userName));
+                .map(new Func1<Response, UserInfo>() {
+                    @Override
+                    public UserInfo call(Response response) {
+                        try {
+                            return JsonParsers.parseUserInfo(response, gson, userName);
+                        } catch(IOException e) {
+                            Timber.e(e, "failed to read json");
+                            throw new RuntimeException(e);
+                        }
+                    }
+                });
     }
 
     /**
