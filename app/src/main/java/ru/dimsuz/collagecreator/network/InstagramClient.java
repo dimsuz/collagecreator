@@ -7,6 +7,7 @@ import com.squareup.okhttp.Response;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.List;
 
 import ru.dimsuz.collagecreator.data.ImageInfo;
 import ru.dimsuz.collagecreator.data.UserInfo;
@@ -29,17 +30,28 @@ public class InstagramClient {
         gson = new Gson();
     }
 
-    public Observable<ImageInfo> getUserImages(UserInfo userInfo) {
-        if(!userInfo.isValid()) {
-            return Observable.error(new RuntimeException("passed user info is not valid: "+userInfo));
+    public Observable<List<ImageInfo>> getUserImages(UserInfo userInfo) {
+        if(userInfo == null || !userInfo.isValid()) {
+            return Observable.error(new IllegalArgumentException("passed user info is not valid: "+userInfo));
         }
-        return null;
+        return getImagesSinceMaxId(userInfo.userId(), null);
     }
 
-    private static Observable<ImageInfo> fetchAllUserImages(OkHttpClient client, String userId) {
-        return null;
-    }
-
+    private Observable<List<ImageInfo>> getImagesSinceMaxId(String userId, @Nullable String nextMaxId) {
+        String url = "https://api.instagram.com/v1/users/" + userId + "/media/recent/"
+                + (nextMaxId != null ? "?max_id=" + nextMaxId : "");
+        return RxUtils.httpGetRequest(client, instagramUrl(url))
+                .map(new Func1<Response, List<ImageInfo>>() {
+                    @Override
+                    public List<ImageInfo> call(Response response) {
+                        try {
+                            return JsonParsers.parseImagesResponse(response);
+                        } catch(IOException e) {
+                            Timber.e(e, "failed to read image info json");
+                            throw new RuntimeException(e);
+                        }
+                    }
+                });
     }
 
     /**
@@ -60,7 +72,7 @@ public class InstagramClient {
                         try {
                             return JsonParsers.parseUserInfo(response, gson, userName);
                         } catch(IOException e) {
-                            Timber.e(e, "failed to read json");
+                            Timber.e(e, "failed to read user info json");
                             throw new RuntimeException(e);
                         }
                     }
