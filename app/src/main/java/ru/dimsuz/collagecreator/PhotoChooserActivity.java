@@ -153,12 +153,12 @@ public class PhotoChooserActivity extends RxCompatActivity implements AdapterVie
     @OnClick(R.id.button_start)
     public void onChooseFinished() {
         SparseBooleanArray checkedItemPositions = listView.getCheckedItemPositions();
-        if(checkedItemPositions.size() == 0) {
+        ImageListAdapter adapter = (ImageListAdapter) listView.getAdapter();
+        ArrayList<String> imageIds = getSelectedIds(adapter.getData(), checkedItemPositions, selectionOrder);
+        if(imageIds.isEmpty()) {
             Toast.makeText(this, R.string.err_nothing_selected, Toast.LENGTH_LONG).show();
             return;
         }
-        ImageListAdapter adapter = (ImageListAdapter) listView.getAdapter();
-        ArrayList<String> imageIds = getSelectedIds(adapter.getData(), checkedItemPositions, selectionOrder);
         Intent result = new Intent();
         result.putStringArrayListExtra(Consts.EXTRA_IMAGE_IDS, imageIds);
         setResult(RESULT_OK, result);
