@@ -73,6 +73,7 @@ public class CollageActivity extends RxCompatActivity {
     @Nullable
     private Bitmap latestCollageBitmap;
     private UserInfo userInfo;
+    private List<RectF> curCollageLayout = CollageLayout.SIMPLE_2x1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,7 +95,7 @@ public class CollageActivity extends RxCompatActivity {
         // createCollageViewSizedCollage(userInfo);
         // instead of above, decided to do a higher dimension collage
         // 10x15 photo frame is 1200x1800 (300ppi), and DEFAULT_COLLAGE_SIZE=1200, soo...
-        createCollage(userInfo, CollageLayout.SIMPLE_2x2, DEFAULT_COLLAGE_SIZE, Collections.<String>emptyList());
+        createCollage(userInfo, curCollageLayout, DEFAULT_COLLAGE_SIZE, Collections.<String>emptyList());
     }
 
     private void setupActionButtons() {
@@ -109,7 +110,7 @@ public class CollageActivity extends RxCompatActivity {
                     @Override
                     public void onGlobalLayout() {
                         collageView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-                        createCollage(userInfo, CollageLayout.SIMPLE_2x2,
+                        createCollage(userInfo, curCollageLayout,
                                 Math.min(collageView.getWidth(), collageView.getHeight()),
                                 Collections.<String>emptyList());
                     }
@@ -257,6 +258,6 @@ public class CollageActivity extends RxCompatActivity {
 
         List<String> chosenImageIds = data.getStringArrayListExtra(Consts.EXTRA_IMAGE_IDS);
         Timber.d("got list of chosen image ids: %s", chosenImageIds);
-        createCollage(userInfo, CollageLayout.SIMPLE_2x2, DEFAULT_COLLAGE_SIZE, chosenImageIds);
+        createCollage(userInfo, curCollageLayout, DEFAULT_COLLAGE_SIZE, chosenImageIds);
     }
 }
