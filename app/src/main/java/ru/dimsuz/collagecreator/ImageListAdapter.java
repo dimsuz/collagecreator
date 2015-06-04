@@ -44,6 +44,16 @@ public class ImageListAdapter extends BaseAdapter {
         this.data = new ArrayList<>(imageInfoList);
     }
 
+    @NotNull
+    public List<ImageInfo> getData() {
+        return Collections.unmodifiableList(data);
+    }
+
+    @Override
+    public boolean hasStableIds() {
+        return true;
+    }
+
     @Override
     public int getCount() {
         return data.size();

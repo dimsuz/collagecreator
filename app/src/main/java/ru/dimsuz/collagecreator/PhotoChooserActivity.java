@@ -1,10 +1,12 @@
 package ru.dimsuz.collagecreator;
 
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.util.LruCache;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.Toolbar;
+import android.util.SparseBooleanArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -12,10 +14,12 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +28,7 @@ import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import butterknife.OnClick;
 import ru.dimsuz.collagecreator.data.Consts;
 import ru.dimsuz.collagecreator.data.ImageInfo;
 import ru.dimsuz.collagecreator.data.UserInfo;
@@ -133,7 +138,7 @@ public class PhotoChooserActivity extends RxCompatActivity implements AdapterVie
         imageView.setChecked(checked);
         if(actionMode != null) {
             actionMode.setTitle(getResources().getString(R.string.x_out_of_y,
-                    listView.getCheckedItemPositions().size(), userImages.size()));
+                    listView.getCheckedItemIds().length, userImages.size()));
         }
     }
 
@@ -144,5 +149,31 @@ public class PhotoChooserActivity extends RxCompatActivity implements AdapterVie
             return true;
         }
         return false;
+    }
+
+    @OnClick(R.id.button_start)
+    public void onChooseFinished() {
+        SparseBooleanArray checkedItemPositions = listView.getCheckedItemPositions();
+        if(checkedItemPositions.size() == 0) {
+            Toast.makeText(this, R.string.err_nothing_selected, Toast.LENGTH_LONG).show();
+            return;
+        }
+        ImageListAdapter adapter = (ImageListAdapter) listView.getAdapter();
+        ArrayList<String> imageIds = getSelectedIds(adapter.getData(), checkedItemPositions);
+        Timber.d("sending selected ids: %s", imageIds);
+        Intent result = new Intent();
+        result.putStringArrayListExtra(Consts.EXTRA_IMAGE_IDS, imageIds);
+        setResult(RESULT_OK, result);
+        finish();
+    }
+
+    private static ArrayList<String> getSelectedIds(List<ImageInfo> data, SparseBooleanArray itemPositions) {
+        ArrayList<String> result = new ArrayList<>(itemPositions.size());
+        for(int i=0, sz=data.size(); i<sz; i++) {
+            if(itemPositions.get(i)) {
+                result.add(data.get(i).id());
+            }
+        }
+        return result;
     }
 }

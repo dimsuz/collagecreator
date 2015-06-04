@@ -7,6 +7,7 @@
     <string name="send_to_print">В печать</string>
     <string name="err_user_name_is_empty">Не указано имя пользователя</string>
     <string name="err_user_name_not_found">Пользователь \'%s\' не найден, введите корректное имя пользователя</string>
+    <string name="err_nothing_selected">Необходимо выбрать минимум 1 фотографию</string>
     <string name="err_retrieve_failed">Не удалось определить корректность имени пользователя</string>
     <string name="error_no_print_support">Ваше устройство не поддерживает печать фотографий&#8230;</string>
     <string name="chooser_activity_title">Выбор фотографий</string>
