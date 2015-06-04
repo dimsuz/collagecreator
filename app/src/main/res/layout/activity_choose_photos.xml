@@ -22,6 +22,7 @@
             android:divider="@null"
             android:dividerHeight="0dp"
             android:clipToPadding="false"
+            android:listSelector="@android:color/transparent"
             />
         <FrameLayout
             style="@style/ActionButton"

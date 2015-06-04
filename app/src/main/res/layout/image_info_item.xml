@@ -10,6 +10,7 @@
     >
 
 <RelativeLayout
+    android:background="?attr/selectableItemBackgroundBorderless"
     android:layout_width="match_parent"
     android:layout_height="@dimen/chooser_image_size"
     >
