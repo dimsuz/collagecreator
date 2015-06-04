@@ -24,6 +24,10 @@
             android:name=".CollageActivity"
             android:label="@string/app_name"
             />
+        <activity
+            android:name=".PhotoChooserActivity"
+            android:label="@string/chooser_activity_title"
+            />
     </application>
 
 </manifest>

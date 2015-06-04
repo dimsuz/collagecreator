@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="ActionButtons">
+    <style name="ActionButton">
         <item name="android:layout_width">280dp</item>
     </style>
 </resources>

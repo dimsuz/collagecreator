@@ -3,7 +3,7 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    style="@style/ActionButtons"
+    style="@style/ActionButton"
     android:layout_height="wrap_content"
     android:layout_marginLeft="16dp"
     android:layout_marginRight="16dp"

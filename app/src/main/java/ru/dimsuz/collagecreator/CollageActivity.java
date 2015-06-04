@@ -1,5 +1,6 @@
 package ru.dimsuz.collagecreator;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.RectF;
@@ -44,6 +45,8 @@ import timber.log.Timber;
  * Presents a user with a collage and options to adjust it
  */
 public class CollageActivity extends RxCompatActivity {
+    private final static int CHOOSE_PHOTOS_REQUEST = 1;
+
     @Inject
     InstagramClient instagramClient;
     @Inject
@@ -56,6 +59,7 @@ public class CollageActivity extends RxCompatActivity {
     View contentLayout;
     @Nullable
     private Bitmap latestCollageBitmap;
+    private UserInfo userInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,7 +72,7 @@ public class CollageActivity extends RxCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        final UserInfo userInfo = getIntent().getParcelableExtra(Consts.EXTRA_USER_INFO);
+        userInfo = getIntent().getParcelableExtra(Consts.EXTRA_USER_INFO);
         if(userInfo == null || !userInfo.isValid()) {
             throw new RuntimeException("required user info is missing");
         }
@@ -210,5 +214,20 @@ public class CollageActivity extends RxCompatActivity {
         PrintHelper photoPrinter = new PrintHelper(this);
         photoPrinter.setScaleMode(PrintHelper.SCALE_MODE_FIT);
         photoPrinter.printBitmap("Collage photo", latestCollageBitmap);
+    }
+
+    @OnClick(R.id.button_choose)
+    public void onChoosePhotosRequested() {
+        Intent intent = new Intent(this, PhotoChooserActivity.class);
+        intent.putExtra(Consts.EXTRA_USER_INFO, userInfo);
+        startActivityForResult(intent, CHOOSE_PHOTOS_REQUEST);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode != CHOOSE_PHOTOS_REQUEST || resultCode != RESULT_OK) return;
+
+        List<String> chosenImageIds = data.getStringArrayListExtra(Consts.EXTRA_IMAGE_IDS);
+        Timber.d("got list of chosen image ids: %s", chosenImageIds);
     }
 }

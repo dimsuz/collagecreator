@@ -16,7 +16,8 @@ import ru.dimsuz.collagecreator.network.InstagramClient;
 
 @Module(injects = {
         MainActivity.class,
-        CollageActivity.class
+        CollageActivity.class,
+        PhotoChooserActivity.class
 })
 public class MainModule {
     @Provides @Singleton
