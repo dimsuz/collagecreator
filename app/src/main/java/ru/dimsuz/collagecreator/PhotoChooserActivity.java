@@ -81,7 +81,7 @@ public class PhotoChooserActivity extends RxCompatActivity implements AdapterVie
         }
 
         // there's no guaranteed about sorting order, so must sort
-        Collections.sort(userImages, ImageInfo.comparatorByDateDesc());
+        Collections.sort(userImages, ImageInfo.comparatorByLikes());
         setupListView(userImages);
         collageButtonText.setTypeface(typefaceCache.get("Roboto Medium"));
     }
