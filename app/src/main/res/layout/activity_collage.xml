@@ -26,17 +26,28 @@
                  android:id="@+id/collage_actions"
             />
 
-        <ImageView
-            android:id="@+id/collageView"
+        <!-- a little setup to show a correct, not clipped shadow on 5.0+ -->
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="16dp"
+            android:layout_height="match_parent"
             android:layout_alignParentTop="true"
             android:layout_alignParentLeft="true"
             android:layout_alignParentRight="true"
             android:layout_above="@+id/collage_actions"
-            android:scaleType="centerInside"
-            />
+            android:padding="16dp"
+            android:clipToPadding="false"
+            >
+            <ImageView
+                android:id="@+id/collageView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:scaleType="centerInside"
+                android:layout_gravity="center"
+                android:adjustViewBounds="true"
+                android:background="#fff"
+                android:elevation="4dp"
+                />
+        </FrameLayout>
     </RelativeLayout>
 
 </FrameLayout>
