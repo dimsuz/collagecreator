@@ -21,6 +21,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -54,6 +55,7 @@ public class PhotoChooserActivity extends RxCompatActivity implements AdapterVie
     @Nullable
     private ActionMode actionMode;
     private List<ImageInfo> userImages;
+    private List<Integer> selectionOrder = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -141,6 +143,12 @@ public class PhotoChooserActivity extends RxCompatActivity implements AdapterVie
             actionMode.setTitle(getResources().getString(R.string.x_out_of_y,
                     listView.getCheckedItemIds().length, userImages.size()));
         }
+        if(checked) {
+            selectionOrder.add(position);
+        } else {
+            selectionOrder.remove((Integer)position);
+        }
+    }
 
     @OnClick(R.id.button_start)
     public void onChooseFinished() {
@@ -150,21 +158,40 @@ public class PhotoChooserActivity extends RxCompatActivity implements AdapterVie
             return;
         }
         ImageListAdapter adapter = (ImageListAdapter) listView.getAdapter();
-        ArrayList<String> imageIds = getSelectedIds(adapter.getData(), checkedItemPositions);
-        Timber.d("sending selected ids: %s", imageIds);
+        ArrayList<String> imageIds = getSelectedIds(adapter.getData(), checkedItemPositions, selectionOrder);
         Intent result = new Intent();
         result.putStringArrayListExtra(Consts.EXTRA_IMAGE_IDS, imageIds);
         setResult(RESULT_OK, result);
         finish();
     }
 
-    private static ArrayList<String> getSelectedIds(List<ImageInfo> data, SparseBooleanArray itemPositions) {
-        ArrayList<String> result = new ArrayList<>(itemPositions.size());
+    /**
+     * @return selected image ids, sorted by order in which they were selected
+     */
+    private static ArrayList<String> getSelectedIds(final List<ImageInfo> data, SparseBooleanArray itemPositions,
+                                                    final List<Integer> selectionOrder) {
+        final ArrayList<ImageInfo> selectedItems = new ArrayList<>(itemPositions.size());
         for(int i=0, sz=data.size(); i<sz; i++) {
             if(itemPositions.get(i)) {
-                result.add(data.get(i).id());
+                selectedItems.add(data.get(i));
             }
         }
-        return result;
+        // Sort it so that items will come in the order in which user selected them
+        Collections.sort(selectedItems, new Comparator<ImageInfo>() {
+            @Override
+            public int compare(ImageInfo i1, ImageInfo i2) {
+                int pos1 = data.indexOf(i1);
+                int pos2 = data.indexOf(i2);
+                // selectionOrder contains a list of positions in their selection order,
+                // so positions at the end of selectionOrder were ones selected last
+                return ImageInfo.compareInts(selectionOrder.indexOf(pos1), selectionOrder.indexOf(pos2));
+            }
+        });
+
+        final ArrayList<String> selectedIds = new ArrayList<>(itemPositions.size());
+        for(int i=0, size=selectedItems.size(); i<size; i++) {
+            selectedIds.add(selectedItems.get(i).id());
+        }
+        return selectedIds;
     }
 }
