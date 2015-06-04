@@ -11,4 +11,5 @@
     <string name="error_no_print_support">Ваше устройство не поддерживает печать фотографий&#8230;</string>
     <string name="chooser_activity_title">Выбор фотографий</string>
     <string name="no_title_text">Без названия</string>
+    <string name="x_out_of_y">%1$d из %2$d</string>
 </resources>

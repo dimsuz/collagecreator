@@ -10,7 +10,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
@@ -25,6 +24,8 @@ import java.util.Map;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import ru.dimsuz.collagecreator.data.ImageInfo;
+import ru.dimsuz.collagecreator.views.CheckableImageView;
+import rx.functions.Func1;
 
 /**
  * Adapter with image info list items
@@ -33,6 +34,7 @@ public class ImageListAdapter extends BaseAdapter {
     private final Map<String, Typeface> fontCache;
     private List<ImageInfo> data = Collections.emptyList();
     private Time time = new Time();
+    private Func1<Integer, Boolean> checkStateProvider;
 
     public ImageListAdapter(Map<String, Typeface> fontCache) {
         this.fontCache = fontCache;
@@ -73,6 +75,7 @@ public class ImageListAdapter extends BaseAdapter {
         View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.image_info_item, viewGroup, false);
         ViewHolder holder = new ViewHolder();
         ButterKnife.inject(holder, view);
+        holder.imageView.setForeground(viewGroup.getResources().getDrawable(R.drawable.check_icon));
         holder.likesView.setTypeface(fontCache.get("Roboto Regular"));
         holder.dateView.setTypeface(fontCache.get("Roboto Regular"));
         holder.titleView.setTypeface(fontCache.get("Roboto Light"));
@@ -93,6 +96,9 @@ public class ImageListAdapter extends BaseAdapter {
                 .resize(imageSize, imageSize)
                 .centerInside()
                 .into(holder.imageView);
+        if(checkStateProvider != null) {
+            holder.imageView.setChecked(checkStateProvider.call(position));
+        }
 
         //
         // Date
@@ -133,9 +139,13 @@ public class ImageListAdapter extends BaseAdapter {
         return title.length() > maxLength ? title.subSequence(0, maxLength-3) + "..." : title;
     }
 
+    public void setCheckedStateProvider(Func1<Integer, Boolean> checkStateProvider) {
+        this.checkStateProvider = checkStateProvider;
+    }
+
     static class ViewHolder {
         @InjectView(R.id.image)
-        ImageView imageView;
+        CheckableImageView imageView;
         @InjectView(R.id.date)
         TextView dateView;
         @InjectView(R.id.title)
