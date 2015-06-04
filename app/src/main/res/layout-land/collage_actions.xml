@@ -23,6 +23,7 @@
         android:foreground="?attr/selectableItemBackground">
 
         <TextView
+            android:id="@+id/button_choose_text"
             android:background="@color/primaryColor"
             android:layout_width="match_parent"
             android:layout_height="48dp"
@@ -43,6 +44,7 @@
         android:foreground="?attr/selectableItemBackground">
 
         <TextView
+            android:id="@+id/button_print_text"
             android:background="@color/primaryColor"
             android:layout_width="match_parent"
             android:layout_height="48dp"

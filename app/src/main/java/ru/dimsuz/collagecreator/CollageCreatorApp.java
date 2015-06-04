@@ -19,7 +19,7 @@ public class CollageCreatorApp extends Application {
             Timber.plant(new Timber.DebugTree());
         }
 
-        objectGraph = ObjectGraph.create(new MainModule());
+        objectGraph = ObjectGraph.create(new MainModule(this));
     }
 
     public void inject(Object o) {

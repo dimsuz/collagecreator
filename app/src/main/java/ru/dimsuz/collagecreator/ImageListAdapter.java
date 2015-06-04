@@ -1,6 +1,7 @@
 package ru.dimsuz.collagecreator;
 
 import android.content.Context;
+import android.graphics.Typeface;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.format.Time;
@@ -19,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -28,8 +30,13 @@ import ru.dimsuz.collagecreator.data.ImageInfo;
  * Adapter with image info list items
  */
 public class ImageListAdapter extends BaseAdapter {
+    private final Map<String, Typeface> fontCache;
     private List<ImageInfo> data = Collections.emptyList();
     private Time time = new Time();
+
+    public ImageListAdapter(Map<String, Typeface> fontCache) {
+        this.fontCache = fontCache;
+    }
 
     public void swapData(List<ImageInfo> imageInfoList) {
         this.data = new ArrayList<>(imageInfoList);
@@ -66,6 +73,9 @@ public class ImageListAdapter extends BaseAdapter {
         View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.image_info_item, viewGroup, false);
         ViewHolder holder = new ViewHolder();
         ButterKnife.inject(holder, view);
+        holder.likesView.setTypeface(fontCache.get("Roboto Regular"));
+        holder.dateView.setTypeface(fontCache.get("Roboto Regular"));
+        holder.titleView.setTypeface(fontCache.get("Roboto Light"));
         view.setTag(holder);
         return view;
     }

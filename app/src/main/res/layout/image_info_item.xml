@@ -32,11 +32,22 @@
         android:textColor="@color/secondaryTextColor"
         />
     <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/image"
+        android:layout_below="@id/date"
+        android:layout_marginTop="16dp"
+        android:singleLine="true"
+        android:ellipsize="end"
+        android:textSize="28sp"
+        />
+    <TextView
         android:id="@+id/likes"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
-        android:layout_alignParentBottom="true"
+        android:layout_below="@id/title"
         android:layout_marginTop="16dp"
         android:layout_marginRight="16dp"
         android:paddingBottom="16dp"
@@ -45,18 +56,6 @@
         android:drawableRight="@drawable/like_icon"
         android:drawablePadding="8dp"
         android:gravity="center_vertical"
-        />
-    <TextView
-        android:id="@+id/title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/image"
-        android:layout_below="@id/date"
-        android:layout_toLeftOf="@id/likes"
-        android:layout_marginTop="16dp"
-        android:singleLine="true"
-        android:ellipsize="end"
-        android:textSize="28sp"
         />
 
 </RelativeLayout>

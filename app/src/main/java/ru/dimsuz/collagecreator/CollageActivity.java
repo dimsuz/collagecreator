@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.RectF;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.print.PrintHelper;
 import android.support.v4.util.LruCache;
@@ -11,12 +12,14 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 
@@ -51,12 +54,20 @@ public class CollageActivity extends RxCompatActivity {
     InstagramClient instagramClient;
     @Inject
     LruCache<String, List<ImageInfo>> userImagesCache;
+    @Inject
+    Map<String,Typeface> typefaceCache;
+
     @InjectView(R.id.collageView)
     ImageView collageView;
     @InjectView(R.id.progressBar)
     View progressBar;
     @InjectView(R.id.content)
     View contentLayout;
+    @InjectView(R.id.button_choose_text)
+    TextView choosePhotosButtonText;
+    @InjectView(R.id.button_print_text)
+    TextView printPhotosButtonText;
+
     @Nullable
     private Bitmap latestCollageBitmap;
     private UserInfo userInfo;
@@ -71,6 +82,7 @@ public class CollageActivity extends RxCompatActivity {
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        setupActionButtons();
 
         userInfo = getIntent().getParcelableExtra(Consts.EXTRA_USER_INFO);
         if(userInfo == null || !userInfo.isValid()) {
@@ -82,6 +94,11 @@ public class CollageActivity extends RxCompatActivity {
         // 10x15 photo frame is 1200x1800 (300ppi), soo...
         int targetSize = 1200;
         createCollage(userInfo, CollageLayout.SIMPLE_2x2, targetSize);
+    }
+
+    private void setupActionButtons() {
+        choosePhotosButtonText.setTypeface(typefaceCache.get("Roboto Medium"));
+        printPhotosButtonText.setTypeface(typefaceCache.get("Roboto Medium"));
     }
 
     private void createCollageViewSizedCollage(final UserInfo userInfo) {

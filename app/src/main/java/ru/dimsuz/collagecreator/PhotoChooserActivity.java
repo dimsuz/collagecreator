@@ -1,11 +1,14 @@
 package ru.dimsuz.collagecreator;
 
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.util.LruCache;
 import android.support.v7.widget.Toolbar;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 
@@ -24,8 +27,13 @@ public class PhotoChooserActivity extends RxCompatActivity {
     // would take time to adapt that
     @InjectView(R.id.listView)
     ListView listView;
+    @InjectView(R.id.button_start_text)
+    TextView collageButtonText;
+
     @Inject
     LruCache<String,List<ImageInfo>> userImagesCache;
+    @Inject
+    Map<String,Typeface> typefaceCache;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,10 +59,11 @@ public class PhotoChooserActivity extends RxCompatActivity {
         }
 
         setupListView(userImages);
+        collageButtonText.setTypeface(typefaceCache.get("Roboto Medium"));
     }
 
     public void setupListView(List<ImageInfo> imageInfoList) {
-        ImageListAdapter adapter = new ImageListAdapter();
+        ImageListAdapter adapter = new ImageListAdapter(typefaceCache);
         adapter.swapData(imageInfoList);
         listView.setAdapter(adapter);
     }

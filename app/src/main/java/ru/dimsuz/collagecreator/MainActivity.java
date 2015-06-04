@@ -1,6 +1,7 @@
 package ru.dimsuz.collagecreator;
 
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -8,6 +9,7 @@ import android.widget.TextView;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
@@ -34,10 +36,14 @@ import timber.log.Timber;
 public class MainActivity extends RxCompatActivity {
     @Inject
     InstagramClient instagramClient;
+    @Inject
+    Map<String,Typeface> typefaceCache;
     @InjectView(R.id.edit_username)
     TextView userNameView;
     @InjectView(R.id.errorView)
     TextView errorView;
+    @InjectView(R.id.button_start_text)
+    TextView collageButtonText;
     /**
      * Will emit notifications with all valid instagram user names entered by user.
      * Latest valid name will be cached and emitted to the subscriber immediately.
@@ -61,6 +67,7 @@ public class MainActivity extends RxCompatActivity {
             String name = savedInstanceState.getString("name");
             userNameView.setText(name != null ? name : "");
         }
+        collageButtonText.setTypeface(typefaceCache.get("Roboto Medium"));
     }
 
     @Override

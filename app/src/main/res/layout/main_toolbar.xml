@@ -12,4 +12,6 @@
     android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
     app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
     android:layout_gravity="top"
-    tools:showIn="@layout/activity_main"/>
+    tools:showIn="@layout/activity_main"
+    android:elevation="4dp"
+    />
