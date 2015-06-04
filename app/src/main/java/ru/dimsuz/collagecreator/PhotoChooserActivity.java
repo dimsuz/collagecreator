@@ -39,7 +39,7 @@ import timber.log.Timber;
 /**
  * An activity to choose photos that make up collage
  */
-public class PhotoChooserActivity extends RxCompatActivity implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener {
+public class PhotoChooserActivity extends RxCompatActivity implements AdapterView.OnItemClickListener {
     // using a list view, because RecyclerView doesn't support multiple choice action modes so far
     // would take time to adapt that
     @InjectView(R.id.listView)
@@ -99,7 +99,6 @@ public class PhotoChooserActivity extends RxCompatActivity implements AdapterVie
         listView.setAdapter(adapter);
         listView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
         listView.setOnItemClickListener(this);
-        listView.setOnItemLongClickListener(this);
         startActionMode();
     }
 
@@ -142,16 +141,6 @@ public class PhotoChooserActivity extends RxCompatActivity implements AdapterVie
             actionMode.setTitle(getResources().getString(R.string.x_out_of_y,
                     listView.getCheckedItemIds().length, userImages.size()));
         }
-    }
-
-    @Override
-    public boolean onItemLongClick(AdapterView<?> adapterView, View view, int position, long ld) {
-        if(actionMode == null) {
-            startActionMode();
-            return true;
-        }
-        return false;
-    }
 
     @OnClick(R.id.button_start)
     public void onChooseFinished() {
