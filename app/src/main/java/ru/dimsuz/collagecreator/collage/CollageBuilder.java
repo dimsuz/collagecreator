@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.media.ThumbnailUtils;
 
 import java.util.List;
 
@@ -13,7 +14,15 @@ import timber.log.Timber;
  * Builds collages with different configurations
  */
 public class CollageBuilder {
-    // FIXME describe!
+    /**
+     * Builds a collage out of a list of images
+     *
+     * @param images a list of images to use
+     * @param layout a collage layout to use. See {@link CollageLayout} for description of format
+     * @param targetSize a target size (in px) for this collage
+     * @param bgColor a background color to use
+     * @return a collage bitmap
+     */
     public static Bitmap create(List<Bitmap> images, List<RectF> layout, int targetSize, int bgColor) {
         validateArguments(images, layout, targetSize);
         // if sizes do not much, use as much data as possible
@@ -26,9 +35,16 @@ public class CollageBuilder {
         Canvas canvas = new Canvas(bitmap);
         canvas.drawColor(bgColor);
         for(int i=0; i<rects.length; i++) {
-            canvas.drawBitmap(images.get(i), null, rects[i], paint);
+            Bitmap src = images.get(i);
+            Bitmap b = isSameAspectRatio(src, rects[i])
+                    ? src : ThumbnailUtils.extractThumbnail(src, (int)rects[i].width(), (int)rects[i].height());
+            canvas.drawBitmap(b, null, rects[i], paint);
         }
         return bitmap;
+    }
+
+    private static boolean isSameAspectRatio(Bitmap b, RectF rect) {
+        return Math.abs(b.getWidth() / (float)b.getHeight() - rect.width() / rect.height()) < 0.0001f;
     }
 
     private static void validateArguments(List<Bitmap> images, List<RectF> layout, int targetSize) {
