@@ -18,6 +18,7 @@ import android.widget.Toast;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -49,6 +50,7 @@ import timber.log.Timber;
  */
 public class CollageActivity extends RxCompatActivity {
     private final static int CHOOSE_PHOTOS_REQUEST = 1;
+    private static final int DEFAULT_COLLAGE_SIZE = 1200;
 
     @Inject
     InstagramClient instagramClient;
@@ -91,9 +93,8 @@ public class CollageActivity extends RxCompatActivity {
 
         // createCollageViewSizedCollage(userInfo);
         // instead of above, decided to do a higher dimension collage
-        // 10x15 photo frame is 1200x1800 (300ppi), soo...
-        int targetSize = 1200;
-        createCollage(userInfo, CollageLayout.SIMPLE_2x2, targetSize);
+        // 10x15 photo frame is 1200x1800 (300ppi), and DEFAULT_COLLAGE_SIZE=1200, soo...
+        createCollage(userInfo, CollageLayout.SIMPLE_2x2, DEFAULT_COLLAGE_SIZE, Collections.<String>emptyList());
     }
 
     private void setupActionButtons() {
@@ -108,13 +109,15 @@ public class CollageActivity extends RxCompatActivity {
                     @Override
                     public void onGlobalLayout() {
                         collageView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-                        createCollage(userInfo, CollageLayout.SIMPLE_2x2, Math.min(collageView.getWidth(), collageView.getHeight()));
+                        createCollage(userInfo, CollageLayout.SIMPLE_2x2,
+                                Math.min(collageView.getWidth(), collageView.getHeight()),
+                                Collections.<String>emptyList());
                     }
                 });
     }
 
-    private void createCollage(UserInfo userInfo, final List<RectF> layout, int size) {
-        Observable<Bitmap> collageObservable = createCollageObservable(userInfo, layout, size);
+    private void createCollage(UserInfo userInfo, final List<RectF> layout, int size, @NotNull List<String> selectedIds) {
+        Observable<Bitmap> collageObservable = createCollageObservable(userInfo, layout, size, selectedIds);
         LifecycleObservable.bindUntilLifecycleEvent(lifecycle(), collageObservable, LifecycleEvent.DESTROY)
                 .doOnSubscribe(showProgressBar())
                 .subscribeOn(Schedulers.io())
@@ -164,8 +167,13 @@ public class CollageActivity extends RxCompatActivity {
     /**
      * This is the heart of collage creation.
      * It all starts with user images, then rushes through sorting to laying out and to the final render!
+     *
+     * @param selectedIds a list of image ids which will be used first, can be empty, not null
      */
-    private Observable<Bitmap> createCollageObservable(final UserInfo userInfo, final List<RectF> layout, final int size) {
+    private Observable<Bitmap> createCollageObservable(
+            final UserInfo userInfo, final List<RectF> layout,
+            final int size, @NotNull List<String> selectedIds) {
+
         // First, try to get from cache
         return Observable.just(userImagesCache.get(userInfo.userName()))
                 // either use cached value, or proceed with fetching all image data
@@ -181,8 +189,11 @@ public class CollageActivity extends RxCompatActivity {
                         }
                     }
                 })
+                // sort either by likes or by selected items
+                .toSortedList(selectedIds.isEmpty() ? ImageInfo.sortByLikesDesc() : ImageInfo.sortIdsFirst(selectedIds))
+                .flatMap(Functions.<ImageInfo>flatten())
                 // take only amount of images we need for the collage
-                .take(layout.size())
+                .take(selectedIds.isEmpty() ? layout.size() : Math.min(selectedIds.size(), layout.size()))
                 // fetch bitmap data for these image urls
                 .flatMap(new Func1<ImageInfo, Observable<Bitmap>>() {
                     @Override
@@ -202,7 +213,7 @@ public class CollageActivity extends RxCompatActivity {
 
     private Observable<ImageInfo> createImageDataFetchObservable(UserInfo userInfo) {
         return instagramClient.getUserImages(userInfo)
-                .toSortedList(ImageInfo.sortByLikesDesc())
+                .toList()
                 .doOnNext(saveToCache(userInfo))
                 .flatMap(Functions.<ImageInfo>flatten());
     }
@@ -246,5 +257,6 @@ public class CollageActivity extends RxCompatActivity {
 
         List<String> chosenImageIds = data.getStringArrayListExtra(Consts.EXTRA_IMAGE_IDS);
         Timber.d("got list of chosen image ids: %s", chosenImageIds);
+        createCollage(userInfo, CollageLayout.SIMPLE_2x2, DEFAULT_COLLAGE_SIZE, chosenImageIds);
     }
 }

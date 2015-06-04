@@ -2,6 +2,9 @@ package ru.dimsuz.collagecreator.data;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Comparator;
+import java.util.List;
+
 import auto.parcel.AutoParcel;
 import rx.functions.Func2;
 
@@ -27,9 +30,56 @@ public abstract class ImageInfo {
         return new Func2<ImageInfo, ImageInfo, Integer>() {
             @Override
             public Integer call(ImageInfo imageInfo1, ImageInfo imageInfo2) {
-                // need to be a little weirder than Integer.compare() to support earlier api levels
-                return Integer.valueOf(imageInfo2.likesCount()).compareTo(imageInfo1.likesCount());
+                return compareInts(imageInfo2.likesCount(), imageInfo1.likesCount());
             }
         };
+    }
+
+    public static Func2<ImageInfo, ImageInfo, Integer> sortIdsFirst(final List<String> prioritizedIds) {
+        return new Func2<ImageInfo, ImageInfo, Integer>() {
+            @Override
+            public Integer call(ImageInfo imageInfo1, ImageInfo imageInfo2) {
+                int priorityIndex1 = prioritizedIds.indexOf(imageInfo1.id());
+                int priorityIndex2 = prioritizedIds.indexOf(imageInfo2.id());
+                if(priorityIndex1 == -1 && priorityIndex2 == -1) {
+                    return compareInts(imageInfo2.likesCount(), imageInfo1.likesCount());
+                }
+                if(priorityIndex1 == -1) {
+                    return 1;
+                } else if(priorityIndex2 == -1){
+                    return -1;
+                } else {
+                    return compareInts(priorityIndex1, priorityIndex2);
+                }
+            }
+        };
+    }
+
+    public static Comparator<ImageInfo> comparatorByDateDesc() {
+        return new Comparator<ImageInfo>() {
+            @Override
+            public int compare(ImageInfo i1, ImageInfo i2) {
+                return compareLongs(i2.timestamp(), i1.timestamp());
+            }
+        };
+    }
+
+    public static Comparator<ImageInfo> comparatorByLikes() {
+        return new Comparator<ImageInfo>() {
+            @Override
+            public int compare(ImageInfo i1, ImageInfo i2) {
+                return compareInts(i2.likesCount(), i1.likesCount());
+            }
+        };
+    }
+
+    public static int compareInts(int i1, int i2) {
+        // need to be a little weirder than Integer.compare() to support earlier api levels
+        // copy paste java 6 implementation
+        return (i1 < i2) ? -1 : ((i1 == i2) ? 0 : 1);
+    }
+
+    public static int compareLongs(long i1, long i2) {
+        return (i1 < i2) ? -1 : ((i1 == i2) ? 0 : 1);
     }
 }

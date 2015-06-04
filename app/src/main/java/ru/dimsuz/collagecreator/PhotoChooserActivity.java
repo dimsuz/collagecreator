@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -70,7 +70,7 @@ public class PhotoChooserActivity extends RxCompatActivity implements AdapterVie
         if(userInfo == null || !userInfo.isValid()) {
             throw new RuntimeException("required user info is missing");
         }
-        List<ImageInfo> userImages = userImagesCache.get(userInfo.userName());
+        userImages = userImagesCache.get(userInfo.userName());
         if(userImages == null) {
             // if this happens... well... this should not! cache is filled,
             // right before button to invoke this activity is available to user
@@ -78,6 +78,8 @@ public class PhotoChooserActivity extends RxCompatActivity implements AdapterVie
             finish();
         }
 
+        // there's no guaranteed about sorting order, so must sort
+        Collections.sort(userImages, ImageInfo.comparatorByDateDesc());
         setupListView(userImages);
         collageButtonText.setTypeface(typefaceCache.get("Roboto Medium"));
     }
