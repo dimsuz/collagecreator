@@ -3,7 +3,6 @@ package ru.dimsuz.collagecreator;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.print.PrintHelper;
@@ -73,7 +72,7 @@ public class CollageActivity extends RxCompatActivity {
     @Nullable
     private Bitmap latestCollageBitmap;
     private UserInfo userInfo;
-    private List<RectF> curCollageLayout = CollageLayout.SIMPLE_2x1;
+    private CollageLayout curCollageLayout = CollageLayout.SIMPLE_2x1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,7 +116,7 @@ public class CollageActivity extends RxCompatActivity {
                 });
     }
 
-    private void createCollage(UserInfo userInfo, final List<RectF> layout, int size, @NotNull List<String> selectedIds) {
+    private void createCollage(UserInfo userInfo, CollageLayout layout, int size, @NotNull List<String> selectedIds) {
         Observable<Bitmap> collageObservable = createCollageObservable(userInfo, layout, size, selectedIds);
         LifecycleObservable.bindUntilLifecycleEvent(lifecycle(), collageObservable, LifecycleEvent.DESTROY)
                 .doOnSubscribe(showProgressBar())
@@ -172,7 +171,7 @@ public class CollageActivity extends RxCompatActivity {
      * @param selectedIds a list of image ids which will be used first, can be empty, not null
      */
     private Observable<Bitmap> createCollageObservable(
-            final UserInfo userInfo, final List<RectF> layout,
+            final UserInfo userInfo, final CollageLayout layout,
             final int size, @NotNull List<String> selectedIds) {
 
         // First, try to get from cache

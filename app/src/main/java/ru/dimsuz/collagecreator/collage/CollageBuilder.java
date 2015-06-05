@@ -23,12 +23,12 @@ public class CollageBuilder {
      * @param bgColor a background color to use
      * @return a collage bitmap
      */
-    public static Bitmap create(List<Bitmap> images, List<RectF> layout, int targetSize, int bgColor) {
+    public static Bitmap create(List<Bitmap> images, CollageLayout layout, int targetSize, int bgColor) {
         validateArguments(images, layout, targetSize);
         // if sizes do not much, use as much data as possible
         int count = Math.min(images.size(), layout.size());
         Timber.d("building collage out of %d images", count);
-        RectF[] rects = mapToTargetRect(layout, targetSize, count);
+        RectF[] rects = mapToTargetRect(layout.rects(), targetSize, count);
         Bitmap bitmap = Bitmap.createBitmap(targetSize, targetSize, Bitmap.Config.RGB_565);
 
         Paint paint = new Paint(Paint.FILTER_BITMAP_FLAG);
@@ -47,7 +47,7 @@ public class CollageBuilder {
         return Math.abs(b.getWidth() / (float)b.getHeight() - rect.width() / rect.height()) < 0.0001f;
     }
 
-    private static void validateArguments(List<Bitmap> images, List<RectF> layout, int targetSize) {
+    private static void validateArguments(List<Bitmap> images, CollageLayout layout, int targetSize) {
         if(images == null || layout == null) {
             throw new IllegalArgumentException("not null arguments expected");
         }

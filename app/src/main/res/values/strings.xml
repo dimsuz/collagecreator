@@ -13,4 +13,6 @@
     <string name="chooser_activity_title">Выбор фотографий</string>
     <string name="no_title_text">Без названия</string>
     <string name="x_out_of_y">%1$d из %2$d</string>
+    <string name="collage_2x2">Коллаж 2x2</string>
+    <string name="collage_2x1">Коллаж 2x1</string>
 </resources>
