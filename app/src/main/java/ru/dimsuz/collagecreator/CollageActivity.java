@@ -104,6 +104,14 @@ public class CollageActivity extends RxCompatActivity {
         createCollage(curCollageLayout, curSelectedImageIds);
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(latestCollageBitmap != null) {
+            latestCollageBitmap.recycle();
+        }
+    }
+
     private void setupLayoutSpinner() {
         // spinner implementation is known for this naughty behavior: it emits a selected event
         // right after attaching of listener, without user actually select anything! work around that
@@ -169,6 +177,7 @@ public class CollageActivity extends RxCompatActivity {
                 collageView.setImageBitmap(collageBitmap);
                 progressBar.setVisibility(View.GONE);
                 contentLayout.setVisibility(View.VISIBLE);
+                if(latestCollageBitmap != null) latestCollageBitmap.recycle();
                 latestCollageBitmap = collageBitmap;
             }
         };
