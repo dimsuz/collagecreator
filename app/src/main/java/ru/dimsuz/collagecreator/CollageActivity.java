@@ -9,7 +9,6 @@ import android.support.v4.print.PrintHelper;
 import android.support.v4.util.LruCache;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
-import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -102,19 +101,6 @@ public class CollageActivity extends RxCompatActivity {
         printPhotosButtonText.setTypeface(typefaceCache.get("Roboto Medium"));
     }
 
-    private void createCollageViewSizedCollage(final UserInfo userInfo) {
-        // ensure view is measured and laid out, safe to take size
-        collageView.getViewTreeObserver()
-                .addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                    @Override
-                    public void onGlobalLayout() {
-                        collageView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-                        createCollage(userInfo, curCollageLayout,
-                                Math.min(collageView.getWidth(), collageView.getHeight()),
-                                Collections.<String>emptyList());
-                    }
-                });
-    }
 
     private void createCollage(UserInfo userInfo, CollageLayout layout, int size, @NotNull List<String> selectedIds) {
         Observable<Bitmap> collageObservable = createCollageObservable(userInfo, layout, size, selectedIds);
