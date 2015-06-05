@@ -30,6 +30,27 @@ public final class CollageLayout {
             new RectF(0.02f, 0.02f, 0.49f, 0.49f), new RectF(0.51f, 0.02f, 0.98f, 0.49f),
             new RectF(0.02f, 0.51f, 0.98f, 0.98f)),
             R.string.collage_2x1, 0);
+    public final static CollageLayout SIMPLE_1x2 = new CollageLayout(Arrays.asList(
+            new RectF(0.02f, 0.02f, 0.98f, 0.49f),
+            new RectF(0.02f, 0.51f, 0.49f, 0.98f), new RectF(0.51f, 0.51f, 0.98f, 0.98f)),
+            R.string.collage_1x2, 0);
+    public final static CollageLayout SIMPLE_1x1_H = new CollageLayout(Arrays.asList(
+            new RectF(0.02f, 0.02f, 0.98f, 0.49f),
+            new RectF(0.02f, 0.51f, 0.98f, 0.98f)),
+            R.string.collage_1x1_h, 0);
+    public final static CollageLayout SIMPLE_1x1_V = new CollageLayout(Arrays.asList(
+            new RectF(0.02f, 0.02f, 0.49f, 0.98f),
+            new RectF(0.51f, 0.02f, 0.98f, 0.98f)),
+            R.string.collage_1x1_v, 0);
+    public final static CollageLayout CRAZY = new CollageLayout(Arrays.asList(
+            new RectF(0.01f, 0.01f, 0.595f, 0.595f),
+            new RectF(0.605f, 0.01f, 0.99f, 0.395f),
+            new RectF(0.605f, 0.405f, 0.99f, 0.695f),
+            new RectF(0.605f, 0.705f, 0.99f, 0.99f),
+            new RectF(0.305f, 0.605f, 0.595f, 0.99f),
+            new RectF(0.01f, 0.605f, 0.295f, 0.795f),
+            new RectF(0.01f, 0.805f, 0.295f, 0.99f)),
+            R.string.collage_crazy, 0);
     private static int NEXT_ID = 0;
 
     public final List<RectF> rects;

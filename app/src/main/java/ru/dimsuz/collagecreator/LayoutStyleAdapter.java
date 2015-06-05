@@ -22,6 +22,10 @@ public class LayoutStyleAdapter extends BaseAdapter {
         layouts = new CollageLayout[] {
                 CollageLayout.SIMPLE_2x2,
                 CollageLayout.SIMPLE_2x1,
+                CollageLayout.SIMPLE_1x2,
+                CollageLayout.SIMPLE_1x1_H,
+                CollageLayout.SIMPLE_1x1_V,
+                CollageLayout.CRAZY
         };
     }
 
