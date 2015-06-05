@@ -72,6 +72,8 @@ public class CollageActivity extends RxCompatActivity {
     TextView printPhotosButtonText;
     @InjectView(R.id.layout_chooser)
     Spinner layoutSpinner;
+    @InjectView(R.id.errorView)
+    View errorView;
 
     @Nullable
     private Bitmap latestCollageBitmap;
@@ -147,25 +149,11 @@ public class CollageActivity extends RxCompatActivity {
         curSelectedImageIds = selectedIds;
         Observable<Bitmap> collageObservable = createCollageObservable(userInfo, layout, DEFAULT_COLLAGE_SIZE, selectedIds);
         LifecycleObservable.bindUntilLifecycleEvent(lifecycle(), collageObservable, LifecycleEvent.DESTROY)
-                .doOnSubscribe(showProgressBar())
+                .doOnSubscribe(setProgressBarVisible(true))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .doOnCompleted(setProgressBarVisible(false))
                 .subscribe(showCollage(), showError());
-    }
-
-    private Action0 showProgressBar() {
-        return new Action0() {
-            @Override
-            public void call() {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        progressBar.setVisibility(View.VISIBLE);
-                        contentLayout.setVisibility(View.GONE);
-                    }
-                });
-            }
-        };
     }
 
     @NotNull
@@ -175,8 +163,6 @@ public class CollageActivity extends RxCompatActivity {
             public void call(Bitmap collageBitmap) {
                 Timber.d("got collage made: %dx%d", collageBitmap.getWidth(), collageBitmap.getHeight());
                 collageView.setImageBitmap(collageBitmap);
-                progressBar.setVisibility(View.GONE);
-                contentLayout.setVisibility(View.VISIBLE);
                 if(latestCollageBitmap != null) latestCollageBitmap.recycle();
                 latestCollageBitmap = collageBitmap;
             }
@@ -189,6 +175,9 @@ public class CollageActivity extends RxCompatActivity {
             @Override
             public void call(Throwable e) {
                 Timber.e(e, "failed to build a collage");
+                errorView.setVisibility(View.VISIBLE);
+                contentLayout.setVisibility(View.GONE);
+                progressBar.setVisibility(View.GONE);
             }
         };
     }
@@ -312,6 +301,27 @@ public class CollageActivity extends RxCompatActivity {
         }
         ArrayList<String> selectedIds = savedInstanceState.getStringArrayList("selectedIds");
         curSelectedImageIds = selectedIds != null ? selectedIds : Collections.<String>emptyList();
+    }
+
+    @OnClick(R.id.button_retry)
+    void onRetryClick() {
+        createCollage(curCollageLayout, curSelectedImageIds);
+    }
+
+    private Action0 setProgressBarVisible(final boolean visible) {
+        return new Action0() {
+            @Override
+            public void call() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        progressBar.setVisibility(visible ? View.VISIBLE: View.GONE);
+                        contentLayout.setVisibility(visible ? View.GONE : View.VISIBLE);
+                        errorView.setVisibility(View.GONE);
+                    }
+                });
+            }
+        };
     }
 
 }

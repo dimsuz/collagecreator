@@ -228,13 +228,13 @@ public class MainActivity extends RxCompatActivity {
         return new Action0() {
             @Override
             public void call() {
-                runOnUiThread(new Runnable() {
+                progressBar.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        progressBar.setVisibility(visible ? View.VISIBLE: View.GONE);
+                        progressBar.setVisibility(visible ? View.VISIBLE : View.GONE);
                         contentLayout.setVisibility(visible ? View.GONE : View.VISIBLE);
                     }
-                });
+                }, visible ? 0 : 300); // delay showing content back again to prevent flickering
             }
         };
     }
