@@ -40,11 +40,8 @@ public class CollageBuilder {
                     ? src : ThumbnailUtils.extractThumbnail(src, (int)rects[i].width(), (int)rects[i].height());
             canvas.drawBitmap(b, null, rects[i], paint);
         }
-        if(s++ < 3)
-            throw new RuntimeException("fail");
         return bitmap;
     }
-    private static int s = 0;
 
     private static boolean isSameAspectRatio(Bitmap b, RectF rect) {
         return Math.abs(b.getWidth() / (float)b.getHeight() - rect.width() / rect.height()) < 0.0001f;
