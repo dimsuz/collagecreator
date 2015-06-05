@@ -9,13 +9,16 @@ import android.support.v4.print.PrintHelper;
 import android.support.v4.util.LruCache;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -67,11 +70,14 @@ public class CollageActivity extends RxCompatActivity {
     TextView choosePhotosButtonText;
     @InjectView(R.id.button_print_text)
     TextView printPhotosButtonText;
+    @InjectView(R.id.layout_chooser)
+    Spinner layoutSpinner;
 
     @Nullable
     private Bitmap latestCollageBitmap;
     private UserInfo userInfo;
-    private CollageLayout curCollageLayout = CollageLayout.SIMPLE_2x1;
+    private CollageLayout curCollageLayout = CollageLayout.SIMPLE_2x2;
+    private List<String> curSelectedImageIds = Collections.emptyList();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,7 +89,9 @@ public class CollageActivity extends RxCompatActivity {
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        setupLayoutSpinner();
         setupActionButtons();
+        restoreSavedState(savedInstanceState);
 
         userInfo = getIntent().getParcelableExtra(Consts.EXTRA_USER_INFO);
         if(userInfo == null || !userInfo.isValid()) {
@@ -93,7 +101,32 @@ public class CollageActivity extends RxCompatActivity {
         // createCollageViewSizedCollage(userInfo);
         // instead of above, decided to do a higher dimension collage
         // 10x15 photo frame is 1200x1800 (300ppi), and DEFAULT_COLLAGE_SIZE=1200, soo...
-        createCollage(userInfo, curCollageLayout, DEFAULT_COLLAGE_SIZE, Collections.<String>emptyList());
+        createCollage(curCollageLayout, curSelectedImageIds);
+    }
+
+    private void setupLayoutSpinner() {
+        // spinner implementation is known for this naughty behavior: it emits a selected event
+        // right after attaching of listener, without user actually select anything! work around that
+        // by setting a one-time flag which will help to ignore that single first event
+        layoutSpinner.setTag(true);
+        layoutSpinner.setAdapter(new LayoutStyleAdapter());
+        layoutSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+                if(layoutSpinner.getTag() != null) {
+                    // this is that pesky first event, ignore it, user didn't actually select anything
+                    Timber.e("ignoring first (buggy) spinner event");
+                    layoutSpinner.setTag(null);
+                    return;
+                }
+                CollageLayout layout = (CollageLayout) layoutSpinner.getAdapter().getItem(position);
+                createCollage(layout, curSelectedImageIds);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+            }
+        });
     }
 
     private void setupActionButtons() {
@@ -101,9 +134,10 @@ public class CollageActivity extends RxCompatActivity {
         printPhotosButtonText.setTypeface(typefaceCache.get("Roboto Medium"));
     }
 
-
-    private void createCollage(UserInfo userInfo, CollageLayout layout, int size, @NotNull List<String> selectedIds) {
-        Observable<Bitmap> collageObservable = createCollageObservable(userInfo, layout, size, selectedIds);
+    private void createCollage(CollageLayout layout, @NotNull List<String> selectedIds) {
+        curCollageLayout = layout;
+        curSelectedImageIds = selectedIds;
+        Observable<Bitmap> collageObservable = createCollageObservable(userInfo, layout, DEFAULT_COLLAGE_SIZE, selectedIds);
         LifecycleObservable.bindUntilLifecycleEvent(lifecycle(), collageObservable, LifecycleEvent.DESTROY)
                 .doOnSubscribe(showProgressBar())
                 .subscribeOn(Schedulers.io())
@@ -241,8 +275,33 @@ public class CollageActivity extends RxCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(requestCode != CHOOSE_PHOTOS_REQUEST || resultCode != RESULT_OK) return;
 
-        List<String> chosenImageIds = data.getStringArrayListExtra(Consts.EXTRA_IMAGE_IDS);
-        Timber.d("got list of chosen image ids: %s", chosenImageIds);
-        createCollage(userInfo, curCollageLayout, DEFAULT_COLLAGE_SIZE, chosenImageIds);
+        ArrayList<String> selectedIds = data.getStringArrayListExtra(Consts.EXTRA_IMAGE_IDS);
+        Timber.d("got list of chosen image ids: %s", selectedIds);
+        createCollage(curCollageLayout, selectedIds);
     }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putLong("curLayoutId", curCollageLayout.id);
+        outState.putStringArrayList("selectedIds", new ArrayList<>(curSelectedImageIds));
+    }
+
+    private void restoreSavedState(Bundle savedInstanceState) {
+        if(savedInstanceState == null) return;
+
+        long layoutId = savedInstanceState.getLong("curLayoutId", 0);
+        LayoutStyleAdapter adapter = (LayoutStyleAdapter) layoutSpinner.getAdapter();
+        CollageLayout layout = adapter.getItemById(layoutId);
+        if(layout != null) {
+            curCollageLayout = layout;
+            // this will prevent an event from firing, we want only user events reported
+            // (see setupLayoutSpinner() for details)
+            layoutSpinner.setTag(true);
+            layoutSpinner.setSelection(adapter.getItemPositionById(layoutId));
+        }
+        ArrayList<String> selectedIds = savedInstanceState.getStringArrayList("selectedIds");
+        curSelectedImageIds = selectedIds != null ? selectedIds : Collections.<String>emptyList();
+    }
+
 }

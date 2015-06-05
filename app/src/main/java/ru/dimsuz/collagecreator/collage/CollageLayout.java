@@ -1,6 +1,5 @@
 package ru.dimsuz.collagecreator.collage;
 
-import android.content.Context;
 import android.graphics.RectF;
 
 import java.util.ArrayList;
@@ -31,34 +30,21 @@ public final class CollageLayout {
             new RectF(0.02f, 0.02f, 0.49f, 0.49f), new RectF(0.51f, 0.02f, 0.98f, 0.49f),
             new RectF(0.02f, 0.51f, 0.98f, 0.98f)),
             R.string.collage_2x1, 0);
+    private static int NEXT_ID = 0;
 
-    private final List<RectF> rects;
-    private final int descriptionResId;
-    private final int iconResId;
+    public final List<RectF> rects;
+    public final int descriptionResId;
+    public final int iconResId;
+    public final long id;
 
     public CollageLayout(List<RectF> imageRects, int descriptionResId, int iconResId) {
         this.rects = Collections.unmodifiableList(new ArrayList<>(imageRects));
         this.descriptionResId = descriptionResId;
         this.iconResId = iconResId;
-    }
-
-    public List<RectF> rects() {
-        return rects;
+        this.id = NEXT_ID++;
     }
 
     public int size() {
         return rects.size();
-    }
-
-    public String getDescription(Context context) {
-        return context.getString(descriptionResId);
-    }
-
-    public int getDescriptionRes() {
-        return descriptionResId;
-    }
-
-    public int getIconRes() {
-        return iconResId;
     }
 }

@@ -5,7 +5,24 @@
              android:layout_height="match_parent"
              tools:context=".MainActivity">
 
-    <include layout="@layout/main_toolbar"/>
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:minHeight="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        android:layout_gravity="top"
+        android:elevation="4dp">
+        <Spinner
+            android:id="@+id/layout_chooser"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="right|center_vertical"
+            android:layout_marginRight="16dp"
+            />
+    </android.support.v7.widget.Toolbar>
 
     <ProgressBar
         android:id="@+id/progressBar"

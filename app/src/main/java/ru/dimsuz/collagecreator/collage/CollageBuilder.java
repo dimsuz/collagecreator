@@ -28,7 +28,7 @@ public class CollageBuilder {
         // if sizes do not much, use as much data as possible
         int count = Math.min(images.size(), layout.size());
         Timber.d("building collage out of %d images", count);
-        RectF[] rects = mapToTargetRect(layout.rects(), targetSize, count);
+        RectF[] rects = mapToTargetRect(layout.rects, targetSize, count);
         Bitmap bitmap = Bitmap.createBitmap(targetSize, targetSize, Bitmap.Config.RGB_565);
 
         Paint paint = new Paint(Paint.FILTER_BITMAP_FLAG);
