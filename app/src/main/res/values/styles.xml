@@ -11,6 +11,9 @@
         <item name="actionModeCloseDrawable">@drawable/back_bttn</item>
         <item name="actionBarTheme">@style/ThemeOverlay.AppCompat.Dark</item>
     </style>
+    <style name="AppTheme.DarkerBackground">
+        <item name="android:windowBackground">@color/lightGray</item>
+    </style>
 
     <style name="WideButton">
         <item name="android:paddingLeft">48dp</item>

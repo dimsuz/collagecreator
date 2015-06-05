@@ -6,4 +6,5 @@
     <color name="primaryTextColorInverse">#fff</color>
     <color name="secondaryTextColor">#9a9a9a</color>
     <color name="lightGray">#ffdfdfdf</color>
+    <color name="mediumGray">#ffababab</color>
 </resources>

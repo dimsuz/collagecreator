@@ -20,4 +20,5 @@
     <string name="collage_1x1_h">Коллаж 1x1&#8211;1</string>
     <string name="collage_1x1_v">Коллаж 1x1&#8211;2</string>
     <string name="collage_crazy">CRAZY!</string>
+    <string name="welcome">Добро пожаловать!</string>
 </resources>

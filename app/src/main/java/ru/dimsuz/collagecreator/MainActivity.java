@@ -1,10 +1,13 @@
 package ru.dimsuz.collagecreator;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 
 import org.jetbrains.annotations.NotNull;
@@ -17,6 +20,7 @@ import javax.inject.Inject;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
+import butterknife.OnEditorAction;
 import ru.dimsuz.collagecreator.data.Consts;
 import ru.dimsuz.collagecreator.data.UserInfo;
 import ru.dimsuz.collagecreator.network.InstagramClient;
@@ -44,6 +48,9 @@ public class MainActivity extends RxCompatActivity {
     TextView errorView;
     @InjectView(R.id.button_start_text)
     TextView collageButtonText;
+    @InjectView(R.id.welcome_text)
+    TextView welcomeTextView;
+
     /**
      * Will emit notifications with all valid instagram user names entered by user.
      * Latest valid name will be cached and emitted to the subscriber immediately.
@@ -68,6 +75,9 @@ public class MainActivity extends RxCompatActivity {
             userNameView.setText(name != null ? name : "");
         }
         collageButtonText.setTypeface(typefaceCache.get("Roboto Medium"));
+        collageButtonText.setTypeface(typefaceCache.get("Roboto Medium"));
+        collageButtonText.setTypeface(typefaceCache.get("Roboto Medium"));
+        welcomeTextView.setTypeface(typefaceCache.get("Roboto Light"));
     }
 
     @Override
@@ -103,6 +113,7 @@ public class MainActivity extends RxCompatActivity {
                 .subscribe(new Action1<UserInfo>() {
                     @Override
                     public void call(UserInfo userInfo) {
+                        errorView.setVisibility(View.GONE);
                         Timber.d("updating last valid user info: %s", userInfo);
                         validUserInfoObservable.onNext(userInfo);
                     }
@@ -119,6 +130,21 @@ public class MainActivity extends RxCompatActivity {
                         return UserInfo.create(userName, null);
                     }
                 });
+    }
+
+    @OnEditorAction(R.id.edit_username)
+    boolean onEditorActionGo(TextView view, int actionId) {
+        if(actionId == EditorInfo.IME_ACTION_GO) {
+            // hide virtual keyboard
+            view.clearFocus();
+            InputMethodManager imm = (InputMethodManager)getSystemService(
+                    Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+
+            onCollageButtonClicked();
+            return true;
+        }
+        return false;
     }
 
     @OnClick(R.id.button_start)
