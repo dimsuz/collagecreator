@@ -55,7 +55,7 @@ public class PhotoChooserActivity extends RxCompatActivity implements AdapterVie
     @Nullable
     private ActionMode actionMode;
     private List<ImageInfo> userImages;
-    private List<Integer> selectionOrder = new ArrayList<>();
+    private ArrayList<Integer> selectionOrder = new ArrayList<>();
     private int collageLayoutSize;
 
     @Override
@@ -202,5 +202,21 @@ public class PhotoChooserActivity extends RxCompatActivity implements AdapterVie
             selectedIds.add(selectedItems.get(i).id());
         }
         return selectedIds;
+    }
+
+    @Override
+    protected void onRestoreInstanceState(@NotNull Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        ArrayList<Integer> order = savedInstanceState.getIntegerArrayList("selectionOrder");
+        selectionOrder = order == null ? new ArrayList<Integer>() : order;
+        if(actionMode != null) {
+            updateTitle(actionMode);
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putIntegerArrayList("selectionOrder", selectionOrder);
     }
 }
