@@ -6,19 +6,20 @@
 
     <include layout="@layout/main_toolbar"/>
 
-<ScrollView
-     android:layout_width="match_parent"
-     android:layout_height="match_parent"
-     android:paddingTop="?attr/actionBarSize"
-     android:clipToPadding="true"
-    >
-
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        />
     <LinearLayout
         android:id="@+id/content"
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="64dp"
+        android:paddingTop="?attr/actionBarSize"
         android:orientation="vertical"
         android:animateLayoutChanges="true"
         android:focusable="true"
@@ -79,6 +80,5 @@
         </FrameLayout>
 
     </LinearLayout>
-    </ScrollView>
 
 </FrameLayout>

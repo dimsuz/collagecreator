@@ -8,6 +8,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import org.jetbrains.annotations.NotNull;
@@ -31,6 +32,7 @@ import rx.android.lifecycle.LifecycleObservable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.android.widget.OnTextChangeEvent;
 import rx.android.widget.WidgetObservable;
+import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
@@ -50,6 +52,10 @@ public class MainActivity extends RxCompatActivity {
     TextView collageButtonText;
     @InjectView(R.id.welcome_text)
     TextView welcomeTextView;
+    @InjectView(R.id.progressBar)
+    ProgressBar progressBar;
+    @InjectView(R.id.content)
+    View contentLayout;
 
     /**
      * Will emit notifications with all valid instagram user names entered by user.
@@ -149,7 +155,6 @@ public class MainActivity extends RxCompatActivity {
 
     @OnClick(R.id.button_start)
     void onCollageButtonClicked() {
-        // FIXME hide all and show progress bar
         // subscribing to 'userInfoObservable' will emit a last valid user name,
         // so next step is to check whether it is the name which is currently entered:
         // if so - Bingo!
@@ -159,6 +164,8 @@ public class MainActivity extends RxCompatActivity {
                 .take(1)
                 .flatMap(startFinalCheck())
                 .observeOn(AndroidSchedulers.mainThread())
+                .doOnSubscribe(setProgressBarVisible(true))
+                .finallyDo(setProgressBarVisible(false))
                 .subscribe(
                         processFinalUserInfo(), // onSuccess
                         showInfoFetchError() // onError
@@ -217,4 +224,18 @@ public class MainActivity extends RxCompatActivity {
         };
     }
 
+    private Action0 setProgressBarVisible(final boolean visible) {
+        return new Action0() {
+            @Override
+            public void call() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        progressBar.setVisibility(visible ? View.VISIBLE: View.GONE);
+                        contentLayout.setVisibility(visible ? View.GONE : View.VISIBLE);
+                    }
+                });
+            }
+        };
+    }
 }
