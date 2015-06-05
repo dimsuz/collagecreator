@@ -211,7 +211,7 @@ public class CollageActivity extends RxCompatActivity {
                 .toSortedList(selectedIds.isEmpty() ? ImageInfo.sortByLikesDesc() : ImageInfo.sortIdsFirst(selectedIds))
                 .flatMap(Functions.<ImageInfo>flatten())
                 // take only amount of images we need for the collage
-                .take(selectedIds.isEmpty() ? layout.size() : Math.min(selectedIds.size(), layout.size()))
+                .take(layout.size())
                 // fetch bitmap data for these image urls
                 .flatMap(new Func1<ImageInfo, Observable<Bitmap>>() {
                     @Override
