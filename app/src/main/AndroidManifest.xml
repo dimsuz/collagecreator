@@ -12,6 +12,7 @@
         android:theme="@style/AppTheme" >
         <activity
             android:name=".MainActivity"
+            android:theme="@style/AppTheme.DarkerBackground"
             android:label="@string/app_name"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
@@ -21,7 +22,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:theme="@style/AppTheme.DarkerBackground"
+            android:theme="@style/AppTheme.Collage"
             android:name=".CollageActivity"
             android:label="@string/app_name"
             android:exported="true"

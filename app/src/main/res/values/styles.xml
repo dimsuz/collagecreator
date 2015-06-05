@@ -13,6 +13,10 @@
     </style>
     <style name="AppTheme.DarkerBackground">
         <item name="android:windowBackground">@color/lightGray</item>
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
+    <style name="AppTheme.Collage" parent="AppTheme.DarkerBackground">
+        <item name="android:windowAnimationStyle">@null</item>
     </style>
 
     <style name="WideButton">
