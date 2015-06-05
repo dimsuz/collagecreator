@@ -48,8 +48,7 @@ public class CheckableImageView extends ImageView implements Checkable {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         if(foreground != null) {
-            foreground.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-            foreground.setState(getDrawableState());
+            foreground.setBounds(0, 0, getWidth(), getHeight());
             foreground.draw(canvas);
         }
     }
@@ -59,5 +58,6 @@ public class CheckableImageView extends ImageView implements Checkable {
         if(isChecked == checked)  return;
         isChecked = checked;
         refreshDrawableState();
+        foreground.setState(getDrawableState());
     }
 }
