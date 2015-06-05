@@ -56,6 +56,7 @@ public class PhotoChooserActivity extends RxCompatActivity implements AdapterVie
     private ActionMode actionMode;
     private List<ImageInfo> userImages;
     private List<Integer> selectionOrder = new ArrayList<>();
+    private int collageLayoutSize;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,6 +80,7 @@ public class PhotoChooserActivity extends RxCompatActivity implements AdapterVie
             Timber.e("user images were not retrieved, can not continue!");
             finish();
         }
+        collageLayoutSize = getIntent().getIntExtra(Consts.EXTRA_COLLAGE_LAYOUT_SIZE, 0);
 
         // there's no guaranteed about sorting order, so must sort
         Collections.sort(userImages, ImageInfo.comparatorByLikes());
@@ -108,8 +110,7 @@ public class PhotoChooserActivity extends RxCompatActivity implements AdapterVie
         startSupportActionMode(new ActionMode.Callback() {
             @Override
             public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-                mode.setTitle(getResources().getString(R.string.x_out_of_y,
-                        listView.getCheckedItemIds().length, userImages.size()));
+                updateTitle(mode);
                 actionMode = mode;
                 return true;
             }
@@ -132,6 +133,17 @@ public class PhotoChooserActivity extends RxCompatActivity implements AdapterVie
         });
     }
 
+    private void updateTitle(@Nullable ActionMode mode) {
+        if(mode != null) {
+            int count = listView.getCheckedItemIds().length;
+            String title = getResources().getString(R.string.x_out_of_y, count, userImages.size());
+            if(collageLayoutSize - count > 0) {
+                title += " " + getResources().getString(R.string.more_hint, collageLayoutSize - count);
+            }
+            mode.setTitle(title);
+        }
+    }
+
     @Override
     public void onItemClick(@NotNull AdapterView<?> adapterView, @NotNull View item, int position, long id) {
         // set in place to avoid reloading all items in adapter. But adapter will be still aware of
@@ -139,10 +151,7 @@ public class PhotoChooserActivity extends RxCompatActivity implements AdapterVie
         boolean checked = listView.isItemChecked(position);
         CheckableImageView imageView = (CheckableImageView) item.findViewById(R.id.image);
         imageView.setChecked(checked);
-        if(actionMode != null) {
-            actionMode.setTitle(getResources().getString(R.string.x_out_of_y,
-                    listView.getCheckedItemIds().length, userImages.size()));
-        }
+        updateTitle(actionMode);
         if(checked) {
             selectionOrder.add(position);
         } else {

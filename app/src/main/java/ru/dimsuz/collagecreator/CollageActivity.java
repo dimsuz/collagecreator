@@ -277,6 +277,7 @@ public class CollageActivity extends RxCompatActivity {
     public void onChoosePhotosRequested() {
         Intent intent = new Intent(this, PhotoChooserActivity.class);
         intent.putExtra(Consts.EXTRA_USER_INFO, userInfo);
+        intent.putExtra(Consts.EXTRA_COLLAGE_LAYOUT_SIZE, curCollageLayout.size());
         startActivityForResult(intent, CHOOSE_PHOTOS_REQUEST);
     }
 
